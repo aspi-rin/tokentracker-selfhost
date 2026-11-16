@@ -333,7 +333,8 @@ export function useAccountProfileSettings() {
   useSyncExternalStore(subscribeCloudPrompts, cloudPromptRevision, () => 0);
   const promptState = readCloudPromptState(auth.user?.id);
   const selfHosted = promptState.membership?.status === "self_hosted" || promptState.catalog?.policy?.hosting_mode === "self_hosted";
-  const publicProfileAvailable = !selfHosted && (isOfficialInsforgeInstance() || promptState.membership?.hosting_mode === "hosted");
+  const publicProfileAvailable = import.meta.env.VITE_TOKENTRACKER_PUBLIC_PROFILES === "1" ||
+    (!selfHosted && (isOfficialInsforgeInstance() || promptState.membership?.hosting_mode === "hosted"));
   const state = useProfileState(auth.user);
   const cloudSync = useCloudSyncControl(auth.getAccessToken, auth.enabled, auth.signedIn, auth.user?.id);
   useProfileLoad(auth.getAccessToken, auth.signedIn && publicProfileAvailable, state.loadSetters);

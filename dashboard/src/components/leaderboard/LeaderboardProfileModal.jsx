@@ -28,6 +28,8 @@ import { BadgeStrip } from "../../ui/achievements/BadgeStrip.jsx";
 import { highestBadge } from "../../ui/achievements/badge-catalog";
 import { TokenFormatModeOverride } from "../../ui/foundation/TokenFormatProvider.jsx";
 
+const selfHostedPublic = import.meta.env.VITE_TOKENTRACKER_PUBLIC_PROFILES === "1";
+
 // Lazy: the 3D coin + dialog code ships only when a badge is clicked.
 const BadgeDetailModal = React.lazy(() => import("../../ui/achievements/BadgeDetailModal.jsx"));
 
@@ -282,7 +284,7 @@ function Header({ user, onClose }) {
       </div>
       {user?.user_id && (
         <div className="shrink-0 flex items-center justify-center">
-          <LikeButton userId={user.user_id} />
+          {!selfHostedPublic && <LikeButton userId={user.user_id} />}
         </div>
       )}
       {onClose && (
@@ -335,7 +337,7 @@ function PageHero({ user, topBadge }) {
               {user?.display_name || "—"}
             </h1>
             <LeaderboardProBadge proActive={user?.pro_active === true} />
-            {user?.user_id && <LikeButton userId={user.user_id} />}
+            {user?.user_id && !selfHostedPublic && <LikeButton userId={user.user_id} />}
           </div>
           {handle ? (
             <a
@@ -470,7 +472,8 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
   // leaderboard user_id matches the signed-in InsForge auth user id.
   const auth = useInsforgeAuth();
   const isOwnProfile = Boolean(auth?.user?.id && user?.user_id && auth.user.id === user.user_id);
-  const profileUrl = user?.user_id ? `https://www.tokentracker.cc/u/${user.user_id}` : null;
+  const profileOrigin = selfHostedPublic ? window.location.origin : "https://www.tokentracker.cc";
+  const profileUrl = user?.user_id ? `${profileOrigin}/u/${encodeURIComponent(user.user_id)}` : null;
   const badgeSnippet = user?.user_id
     ? `[![My AI coding usage](${getInsforgeRemoteUrl()}/functions/tokentracker-embed-svg?user_id=${user.user_id}&theme=dark)](${profileUrl}?ref=readme)`
     : null;
@@ -655,7 +658,7 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
             {isOwnProfile && (
               <div className="flex items-center gap-2">
                 <CopyAction icon={Link2} label={copy("leaderboard.profile_modal.badge.copy_url")} value={profileUrl} />
-                <CopyAction icon={Code2} label={copy("leaderboard.profile_modal.badge.copy")} value={badgeSnippet} />
+                {!selfHostedPublic && <CopyAction icon={Code2} label={copy("leaderboard.profile_modal.badge.copy")} value={badgeSnippet} />}
               </div>
             )}
           </div>

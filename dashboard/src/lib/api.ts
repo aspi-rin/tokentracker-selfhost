@@ -409,6 +409,7 @@ export async function getLeaderboard({
  * anonymous platform adoption without exposing user-level rows.
  */
 export async function getCommunityModels() {
+  if (import.meta.env.VITE_TOKENTRACKER_PUBLIC_PROFILES === "1") return { top_models: [] };
   if (isMockEnabled()) return { top_models: [] };
   return fetchInsforgeFunction("tokentracker-community-models", {});
 }

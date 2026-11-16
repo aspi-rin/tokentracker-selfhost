@@ -20,6 +20,7 @@
  */
 import { createClient } from "npm:@insforge/sdk";
 import { readProBadges } from "./cloud/pro.ts";
+import { billingUserId } from "./cloud/auth.ts";
 
 const SOURCES_WITH_AUTHORITATIVE_COST = new Set(["grok", "cline"]);
 
@@ -39,7 +40,7 @@ const BLOCKED_LEADERBOARD_USER_IDS = new Set(
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", "CDN-Cache-Control": "no-store" },
   });
 }
 
@@ -53,6 +54,11 @@ function b64urlToBytes(s: string): Uint8Array<ArrayBuffer> {
 }
 
 async function verifyCallerUserId(req: Request): Promise<string | null> {
+  if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1") {
+    try { return await billingUserId(req.headers.get("Authorization"), {
+      jwtSecret: Deno.env.get("JWT_SECRET"), jwtPublicKey: Deno.env.get("JWT_PUBLIC_KEY"),
+    }); } catch { return null; }
+  }
   const auth = req.headers.get("Authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
   if (!token) return null;
@@ -913,6 +919,7 @@ export default async function (req: Request): Promise<Response> {
   // for a heavy user, while user_badges_full is a small indexed lookup.
   if (url.searchParams.get("view") === "badges") {
     if (!isSelf) return json({ error: "Forbidden" }, 403);
+    if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1") return json({badges:[],badges_include_unearned:true});
     const { data, error } = await client.database.rpc("user_badges_full", {
       p_user_id: userId,
       p_include_unearned: true,
@@ -930,6 +937,11 @@ export default async function (req: Request): Promise<Response> {
   // gate them behind `leaderboard_public`. The `leaderboard_anonymous` flag
   // is enforced separately below by hiding display_name/avatar/github_url.
   // (A `leaderboard_public=true` check would 404 ~60% of listed rows here.)
+  if (!isSelf && Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1") {
+    const {data: consent,error}=await client.database.from("tokentracker_user_settings")
+      .select("leaderboard_public").eq("user_id",userId).maybeSingle();
+    if(error || consent?.leaderboard_public !== true)return json({error:"Not found"},404);
+  }
   if (!isSelf) {
     const { data: snap } = await client.database
       .from("tokentracker_leaderboard_snapshots")
@@ -965,6 +977,9 @@ export default async function (req: Request): Promise<Response> {
       ),
     readProBadges(client, [userId]),
   ]);
+  if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1" && (settingsRes.error || profileRes.error)) {
+    return json({error:"Failed to fetch profile"},500);
+  }
   const badges = Array.isArray((badgesRes as { data?: unknown }).data)
     ? ((badgesRes as { data?: unknown }).data as Array<Record<string, unknown>>)
     : [];
@@ -1209,3 +1224,5 @@ export default async function (req: Request): Promise<Response> {
     badges_include_unearned: isSelf,
   });
 }
+
+export { computeRowCost, fetchDailyGroupedRows, windowBoundsForPeriod };

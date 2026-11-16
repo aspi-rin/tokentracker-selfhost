@@ -4,7 +4,7 @@ const {createRequire}=require("node:module");
 const {build}=require("esbuild");
 const {builtinModules}=require("node:module");
 const {root,privateFunctions}=require("./manifest.cjs");
-async function buildFunctions(directory) {
+async function buildFunctions(directory,{publicProfiles=false}={}) {
   await fs.mkdir(directory,{recursive:true});
   const lock=JSON.parse(await fs.readFile(path.join(root,"package-lock.json"),"utf8"));
   const alipayRoot=path.join(root,"node_modules/alipay-sdk");
@@ -19,7 +19,8 @@ async function buildFunctions(directory) {
     "/*! urllib 4.9.1\n"+(await fs.readFile(path.join(urllibRoot,"LICENSE"),"utf8")).replace(/\*\//g,"* /")+"*/\n"+
     "/*! Waffo SDK 0.25.0\n"+(await fs.readFile(path.join(waffoRoot,"LICENSE"),"utf8")).replace(/\*\//g,"* /")+"*/\n";
   const entries=[];
-  for(const slug of privateFunctions) {
+  const publicSlugs=["tokentracker-public-visibility","tokentracker-leaderboard","tokentracker-leaderboard-profile","tokentracker-self-host-leaderboard-refresh"];
+  for(const slug of [...privateFunctions,...(publicProfiles?publicSlugs:[])]) {
     const source=path.join(root,"dashboard/edge-patches",slug+".ts");
     const runtimeImports=new Set();
     const ownDashboard={name:"self-host-device-origin",setup(builder){
@@ -91,6 +92,7 @@ async function buildFunctions(directory) {
       if (key === "INSFORGE_SERVICE_ROLE_KEY") return __selfHostPlatformDeno.env.get(key) || __selfHostPlatformDeno.env.get("API_KEY");
       return __selfHostPlatformDeno.env.get(key);
     } } };
+    ${publicProfiles && publicSlugs.includes(slug) ? 'if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") !== "1") return new Response(JSON.stringify({error:"Public profiles are disabled"}),{status:503,headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});' : ''}
     const __selfHostModules = { ${imports} };
     const require = specifier => {
       if (!Object.hasOwn(__selfHostModules,specifier)) throw new Error("Unknown self-host runtime module: " + specifier);
@@ -102,18 +104,18 @@ async function buildFunctions(directory) {
   })(Deno);
 };\n`;
     await fs.writeFile(path.join(directory,slug+".js"),code);
-    entries.push({slug,file:slug+".js",public:slug==="tokentracker-device-flow-authorize" || slug==="tokentracker-device-flow-poll"});
+    entries.push({slug,file:slug+".js",public:slug==="tokentracker-device-flow-authorize" || slug==="tokentracker-device-flow-poll" || (publicProfiles && ["tokentracker-leaderboard","tokentracker-leaderboard-profile"].includes(slug))});
   }
   const manifest={schemaVersion:1,mode:"self_hosted",functions:entries,
-    serverSecrets:["INSFORGE_BASE_URL","INSFORGE_SERVICE_ROLE_KEY","ANON_KEY","JWT_SECRET or JWT_PUBLIC_KEY","TOKENTRACKER_DASHBOARD_URL"],
-    dashboardBuildVariables:["VITE_INSFORGE_BASE_URL","VITE_INSFORGE_ANON_KEY"],
+    serverSecrets:["INSFORGE_BASE_URL","INSFORGE_SERVICE_ROLE_KEY","ANON_KEY","JWT_SECRET or JWT_PUBLIC_KEY","TOKENTRACKER_DASHBOARD_URL",...(publicProfiles?["TOKENTRACKER_PUBLIC_PROFILES_ENABLED","TOKENTRACKER_PUBLIC_REFRESH_SECRET"]:[])],
+    dashboardBuildVariables:["VITE_INSFORGE_BASE_URL","VITE_INSFORGE_ANON_KEY",...(publicProfiles?["VITE_TOKENTRACKER_PUBLIC_PROFILES"]:[])],
     excluded:["official community publishing","payment provider webhooks","billing merchant credentials"]};
   await fs.writeFile(path.join(directory,"functions.json"),JSON.stringify(manifest,null,2)+"\n");
   return manifest;
 }
 if(require.main===module) {
   const directory=path.resolve(process.argv[2]||path.join(root,".tmp/self-host-functions"));
-  buildFunctions(directory).then(manifest=>console.log(`Built ${manifest.functions.length} private self-host functions in ${directory}`))
+  buildFunctions(directory,{publicProfiles:process.argv.includes("--public-profiles")}).then(manifest=>console.log(`Built ${manifest.functions.length} private self-host functions in ${directory}`))
     .catch(error=>{console.error(error.message);process.exitCode=1});
 }
 module.exports={buildFunctions};
