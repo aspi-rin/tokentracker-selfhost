@@ -102,6 +102,8 @@ function useProfileState(user) {
   const [anonymousOn, setAnonymousOn] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [customDisplayName, setCustomDisplayName] = useState(null);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -115,6 +117,7 @@ function useProfileState(user) {
   const userId = useMemo(() => (typeof user?.id === "string" ? user.id.trim() : ""), [user]);
   const loadSetters = useMemo(() => ({
     setAnonymousOn,
+    setAvatarUrl,
     setCustomDisplayName,
     setGithubUrl,
     setProfileLoading,
@@ -123,6 +126,9 @@ function useProfileState(user) {
   }), []);
 
   return {
+    avatarUrl,
+    profileError,
+    setProfileError,
     anonymousOn,
     customDisplayName,
     displayName,
@@ -138,6 +144,7 @@ function useProfileState(user) {
     profileSaving,
     publicProfileOn,
     setAnonymousOn,
+    setAvatarUrl,
     setCustomDisplayName,
     setEditingGithub,
     setEditingName,
@@ -154,7 +161,7 @@ function useProfileState(user) {
   };
 }
 
-function useProfileLoad(getAccessToken, signedIn, state) {
+function useProfileLoad(getAccessToken, signedIn, userId, state) {
   useEffect(() => {
     if (!signedIn) return undefined;
     let active = true;
@@ -167,7 +174,8 @@ function useProfileLoad(getAccessToken, signedIn, state) {
         if (!active) return;
         state.setPublicProfileOn(Boolean(data?.enabled));
         state.setAnonymousOn(Boolean(data?.anonymous));
-        if (data?.display_name) state.setCustomDisplayName(data.display_name);
+        state.setCustomDisplayName(data?.display_name ?? null);
+        state.setAvatarUrl(data?.avatar_url ?? null);
         state.setShowGithubOn(Boolean(data?.show_github_url));
         state.setGithubUrl(data?.github_url || "");
       } catch (error) {
@@ -179,13 +187,14 @@ function useProfileLoad(getAccessToken, signedIn, state) {
     return () => {
       active = false;
     };
-  }, [getAccessToken, signedIn, state]);
+  }, [getAccessToken, signedIn, userId, state]);
 }
 
 function useProfileMutation(getAccessToken, state, available) {
   return useCallback(async (payload, { label, onError, onSuccess } = {}) => {
     if (!available || state.profileSaving) return false;
     state.setProfileSaving(true);
+    state.setProfileError(false);
     try {
       const token = await resolveAuthAccessTokenWithRetry({ getAccessToken });
       if (!token) return false;
@@ -193,6 +202,7 @@ function useProfileMutation(getAccessToken, state, available) {
       onSuccess?.(response);
       return true;
     } catch (error) {
+      state.setProfileError(true);
       if (onError) onError(error);
       else warnSettingsAction(label || "mutate profile", error);
       return false;
@@ -204,6 +214,7 @@ function useProfileMutation(getAccessToken, state, available) {
 
 function buildNameProps(state, actions) {
   return {
+    publicIdentityOnly: import.meta.env.VITE_TOKENTRACKER_PUBLIC_PROFILES === "1",
     anonymousOn: state.anonymousOn,
     customDisplayName: state.customDisplayName,
     displayName: state.displayName,
@@ -276,7 +287,7 @@ function useNameActions(state, mutateProfile, refreshDisplayName) {
   }, [mutateProfile, state, refreshDisplayName]);
 
   const startEditingName = useCallback(() => {
-    state.setNameInput(state.customDisplayName || state.displayName);
+    state.setNameInput(state.customDisplayName || (import.meta.env.VITE_TOKENTRACKER_PUBLIC_PROFILES === "1" ? "" : state.displayName));
     state.setEditingName(true);
   }, [state]);
 
@@ -337,7 +348,7 @@ export function useAccountProfileSettings() {
     (!selfHosted && (isOfficialInsforgeInstance() || promptState.membership?.hosting_mode === "hosted"));
   const state = useProfileState(auth.user);
   const cloudSync = useCloudSyncControl(auth.getAccessToken, auth.enabled, auth.signedIn, auth.user?.id);
-  useProfileLoad(auth.getAccessToken, auth.signedIn && publicProfileAvailable, state.loadSetters);
+  useProfileLoad(auth.getAccessToken, auth.signedIn && publicProfileAvailable, auth.user?.id, state.loadSetters);
   const mutateProfile = useProfileMutation(auth.getAccessToken, state, publicProfileAvailable);
   const visibilityActions = useVisibilityActions(state, mutateProfile);
   const nameActions = useNameActions(state, mutateProfile, auth.refreshDisplayName);
@@ -351,6 +362,12 @@ export function useAccountProfileSettings() {
     userId: state.userId,
     name: buildNameProps(state, { ...visibilityActions, ...nameActions }),
     github: buildGithubProps(state, githubActions),
+    profileError: state.profileError,
+    avatar: import.meta.env.VITE_TOKENTRACKER_PUBLIC_PROFILES === "1" ? {
+      url: state.avatarUrl,
+      disabled: state.anonymousOn || state.profileLoading || state.profileSaving,
+      save: (url) => mutateProfile({avatar_url:url}, {onSuccess: (result) => state.setAvatarUrl(result.avatar_url ?? null)}),
+    } : null,
     profileLoading: state.profileLoading,
     profileSaving: state.profileSaving,
     publicProfileOn: publicProfileAvailable && state.publicProfileOn,

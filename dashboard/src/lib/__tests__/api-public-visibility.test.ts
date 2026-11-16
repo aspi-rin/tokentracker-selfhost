@@ -107,6 +107,14 @@ describe("public visibility API", () => {
       "InsForge base URL not configured",
     );
   });
+  it("sends an uploaded avatar and an explicit avatar removal",async()=>{
+    const fetchMock=mockJsonFetch({avatar_url:null});
+    const avatar="data:image/png;base64,synthetic";
+    await setPublicVisibility({avatar_url:avatar});
+    expect(JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)).toEqual({avatar_url:avatar});
+    await setPublicVisibility({avatar_url:null});
+    expect(JSON.parse(fetchMock.mock.calls[1]?.[1]?.body as string)).toEqual({avatar_url:null});
+  });
 });
 
 describe("achievement badges API", () => {

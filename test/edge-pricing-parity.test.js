@@ -820,3 +820,22 @@ test("Kimi K3.1 Pro / Highspeed priced distinctly from kimi-k3 locally and in al
     );
   }
 });
+
+
+test("Gemini 4 Hydrogen uses published Standard rates locally and in every cloud pricing copy", () => {
+  const { getModelPricingInfo, computeRowCost } = require("../src/lib/pricing");
+  const rates = { input: 1.5, output: 7.5, cache_read: 0.075, cache_write: 0 };
+  for (const model of ["gemini-4-hydrogen", "google/gemini-4-hydrogen", "GEMINI-4-HYDROGEN"]) {
+    const info = getModelPricingInfo(model, { source: "antigravity" });
+    assert.equal(info.status, "priced", model);
+    assert.deepEqual(Object.fromEntries(Object.keys(rates).map(key => [key, info[key]])), rates, model);
+    assert.ok(Math.abs(computeRowCost({ model, source: "antigravity", input_tokens: 5000,
+      output_tokens: 14000, cached_input_tokens: 0, cache_creation_input_tokens: 0 }) - 0.1125) < 1e-12);
+    for (const name of [CANONICAL, ...MIRRORS]) {
+      const { code } = transformSync(extractBlock(name), { loader: "ts", target: "es2020" });
+      const edgePricing = vm.runInNewContext(`${code}\ngetModelPricing;`);
+      assert.deepEqual(JSON.parse(JSON.stringify(edgePricing(model, "antigravity"))), rates, `${name}: ${model}`);
+    }
+  }
+  assert.equal(getModelPricingInfo("unknown-hydrogen-model", { source: "antigravity" }).status, "unpriced");
+});

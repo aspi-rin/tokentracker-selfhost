@@ -127,3 +127,33 @@ test('owner settings retain an unset name while public readers use their anonymo
  await upload(owner,111);await refresh();
  assert.equal((await profile(owner)).data.user.display_name,'Anonymous');
 });
+
+
+test('Hydrogen costs match private account reads and consent-based public snapshots',async()=>{
+ const owner=await instance.user();
+ const device=await instance.request('tokentracker-device-token-issue',{device_name:'Hydrogen fixture',platform:'test',machine_id:randomUUID()},owner);
+ assert.equal(device.response.status,200);
+ const today=new Date().toISOString().slice(0,10);
+ const bucket={hour_start:today+'T00:00:00Z',source:'antigravity',model:'gemini-4-hydrogen',input_tokens:5000,
+  output_tokens:14000,cached_input_tokens:0,cache_creation_input_tokens:0,reasoning_output_tokens:0,
+  total_tokens:19000,billable_total_tokens:19000,total_cost_usd:0,conversation_count:1};
+ assert.equal((await instance.request('tokentracker-ingest',{buckets:[bucket]},device.data.token)).response.status,200);
+ const summary=await instance.request('tokentracker-account-summary?from='+today+'&to='+today+'&tz=UTC',undefined,owner);
+ assert.equal(summary.response.status,200);
+ assert.equal(summary.data.totals.total_tokens,19000);
+ assert.ok(Math.abs(Number(summary.data.totals.total_cost_usd)-0.1125)<1e-12,'private Hydrogen estimate');
+ assert.equal((await visibility(owner,{enabled:true})).response.status,200);
+ assert.equal((await refresh()).response.status,200);
+ const publicProfile=await profile(owner);
+ assert.equal(publicProfile.response.status,200);
+ assert.equal(publicProfile.data.totals.total_tokens,19000);
+ assert.ok(Math.abs(Number(publicProfile.data.totals.estimated_cost_usd)-0.1125)<1e-12,'public Hydrogen estimate');
+ // Re-upload a corrected row with cache reads; estimates must include the cache rate once.
+ const corrected={...bucket,cached_input_tokens:1000,total_tokens:20000,billable_total_tokens:20000};
+ assert.equal((await instance.request('tokentracker-ingest',{buckets:[corrected]},device.data.token)).response.status,200);
+ const cached=await instance.request('tokentracker-account-summary?from='+today+'&to='+today+'&tz=UTC',undefined,owner);
+ assert.equal(cached.data.totals.total_tokens,20000);
+ assert.ok(Math.abs(Number(cached.data.totals.total_cost_usd)-0.112575)<1e-12,'private cache-read estimate');
+ assert.equal((await refresh()).response.status,200);
+ assert.ok(Math.abs(Number((await profile(owner)).data.totals.estimated_cost_usd)-0.112575)<1e-12,'public cache-read estimate');
+});

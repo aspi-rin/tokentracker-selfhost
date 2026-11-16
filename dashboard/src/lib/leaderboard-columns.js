@@ -7,6 +7,7 @@ import { cn } from "./cn";
 export const LEADERBOARD_TOKEN_COLUMNS = [
   { key: "gpt_tokens", copyKey: "leaderboard.column.codex", icon: "/brand-logos/codex.svg" },
   { key: "claude_tokens", copyKey: "leaderboard.column.claude", icon: "/brand-logos/claude-code.svg" },
+  { key: "antigravity_tokens", copyKey: "leaderboard.column.antigravity", icon: "/brand-logos/antigravity.svg" },
   { key: "gemini_tokens", copyKey: "leaderboard.column.gemini", icon: "/brand-logos/gemini.svg" },
   { key: "cursor_tokens", copyKey: "leaderboard.column.cursor", icon: "/brand-logos/cursor.svg" },
   { key: "kiro_tokens", copyKey: "leaderboard.column.kiro", icon: "/brand-logos/kiro.svg" },

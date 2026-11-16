@@ -1,3 +1,4 @@
+import { validPublicAvatar } from "./cloud/public-avatar.ts";
 /**
  * InsForge Edge：公开资料开关。
  * Deno 内优先用 fetch 调 /api/auth/sessions/current 解析 user id（与浏览器 curl 一致）；
@@ -107,7 +108,7 @@ export default async function (req: Request): Promise<Response> {
     const selfHostedPublic = Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1";
     const { data, error } = await client.database
       .from("tokentracker_user_settings")
-      .select("leaderboard_public, leaderboard_anonymous, github_url, show_github_url, updated_at" + (selfHostedPublic ? ", display_name" : ""))
+      .select("leaderboard_public, leaderboard_anonymous, github_url, show_github_url, updated_at" + (selfHostedPublic ? ", display_name, avatar_url" : ""))
       .eq("user_id", userId)
       .maybeSingle();
     if (selfHostedPublic && error) return json({error:"Failed to load public settings"},500);
@@ -128,6 +129,7 @@ export default async function (req: Request): Promise<Response> {
       share_token: pv?.token_hash || null,
       updated_at: data?.updated_at || null,
       display_name: selfHostedPublic ? (data?.display_name ?? null) : (profile?.display_name || null),
+      ...(selfHostedPublic ? {avatar_url:data?.avatar_url ?? null} : {}),
       github_url: data?.github_url || null,
       show_github_url: data?.show_github_url || false,
     });
@@ -137,6 +139,7 @@ export default async function (req: Request): Promise<Response> {
       enabled?: boolean;
       anonymous?: boolean;
       display_name?: string;
+      avatar_url?: string | null;
       github_url?: string | null;
       show_github_url?: boolean;
     };
@@ -177,7 +180,14 @@ export default async function (req: Request): Promise<Response> {
       for (const key of ["enabled","anonymous","show_github_url"] as const) {
         if(body[key] !== undefined && typeof body[key] !== "boolean")return json({error:"Invalid boolean setting"},400);
       }
+      let avatar: string | null | undefined;
+      if (body.avatar_url !== undefined) {
+        if (body.avatar_url === null) avatar = null;
+        else if (typeof body.avatar_url === "string" && validPublicAvatar(body.avatar_url)) avatar = body.avatar_url;
+        else return json({error:"Invalid avatar image"},400);
+      }
       const patch:Record<string,unknown>={};
+      if(avatar!==undefined)patch.avatar_url=avatar;
       for(const key of ["enabled","anonymous","show_github_url"] as const)if(body[key]!==undefined)patch[key]=body[key];
       if(normalizedDisplayName!==undefined)patch.display_name=normalizedDisplayName;
       if(normalizedGithubUrl!==undefined)patch.github_url=normalizedGithubUrl;

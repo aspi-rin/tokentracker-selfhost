@@ -2,7 +2,7 @@ import { createClient } from "npm:@insforge/sdk";
 import { computeRowCost, fetchDailyGroupedRows, windowBoundsForPeriod } from "./tokentracker-leaderboard-profile.ts";
 
 const sourceColumns: Record<string,string> = {
-  codex:"gpt_tokens",claude:"claude_tokens",gemini:"gemini_tokens",cursor:"cursor_tokens",
+  antigravity:"antigravity_tokens",codex:"gpt_tokens",claude:"claude_tokens",gemini:"gemini_tokens",cursor:"cursor_tokens",
   opencode:"opencode_tokens",openclaw:"openclaw_tokens",hermes:"hermes_tokens",kiro:"kiro_tokens",
   copilot:"copilot_tokens","pi-github-copilot":"copilot_tokens","pi-copilot":"copilot_tokens",
   "pi-anthropic":"claude_tokens",kimi:"kimi_tokens",

@@ -1,4 +1,12 @@
 {
+  "settings.account.publicNameUnset": "设置公开昵称",
+  "settings.account.avatar": "公开头像",
+  "settings.account.avatarHint": "支持 PNG、JPEG、WebP，最大 5 MB。选定的图片将用作公开头像。",
+  "settings.account.avatarUpload": "上传头像",
+  "settings.account.avatarRemove": "移除头像",
+  "settings.account.avatarInvalid": "请选择有效的 PNG、JPEG 或 WebP 图片，大小不超过 5 MB。",
+  "settings.account.profileSaveError": "公开资料保存失败，请重试。",
+  "leaderboard.column.antigravity": "Antigravity",
   "limits.cursor.connection.privacy": "登录凭据仅保存在本机，不会上传到 TokenTracker 服务器。",
   "limits.cursor.connection.description": "Cursor 已加密本地登录信息，请在官方页面授权以读取用量和额度。",
   "limits.cursor.connection.retry": "重试连接",

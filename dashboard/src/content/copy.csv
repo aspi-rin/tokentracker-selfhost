@@ -2184,3 +2184,11 @@ limits.cursor.connection.manage,dashboard,LimitsPage,CursorConnectionControl,man
 limits.cursor.connection.retry,dashboard,LimitsPage,CursorConnectionControl,retry,Retry connection,,active
 limits.cursor.connection.description,dashboard,LimitsPage,CursorConnectionControl,description,Cursor encrypts its saved sign-in. Connect on Cursor's website to read your usage and limits.,,active
 limits.cursor.connection.privacy,dashboard,LimitsPage,CursorConnectionControl,privacy,Your sign-in credentials stay on this device and are never sent to TokenTracker servers.,,active
+settings.account.publicNameUnset,dashboard,SettingsPage,PublicProfile,label,"Choose a public nickname",,active
+settings.account.avatar,dashboard,SettingsPage,PublicProfile,label,"Public avatar",,active
+settings.account.avatarHint,dashboard,SettingsPage,PublicProfile,label,"PNG, JPEG or WebP, up to 5 MB. The selected image becomes your public avatar.",,active
+settings.account.avatarUpload,dashboard,SettingsPage,PublicProfile,label,"Upload avatar",,active
+settings.account.avatarRemove,dashboard,SettingsPage,PublicProfile,label,"Remove avatar",,active
+settings.account.avatarInvalid,dashboard,SettingsPage,PublicProfile,label,"Choose a valid PNG, JPEG or WebP image up to 5 MB.",,active
+settings.account.profileSaveError,dashboard,SettingsPage,PublicProfile,label,"Could not save your public profile. Please try again.",,active
+leaderboard.column.antigravity,dashboard,SettingsPage,PublicProfile,label,"Antigravity",,active

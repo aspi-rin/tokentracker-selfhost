@@ -5,6 +5,8 @@ function buildSql({transactional=true}={}) {
  const sql=fs.readFileSync(path.join(__dirname,'public-profiles.sql'),'utf8');
  const checksum=createHash('sha256').update(sql).digest('hex');
  const literal=x=>"'"+x.replaceAll("'","''")+"'";
+ const upgrade=fs.readFileSync(path.join(__dirname,'public-profile-identity.sql'),'utf8');
+ const upgradeChecksum=createHash('sha256').update(upgrade).digest('hex');
  const body=`DO $install$ DECLARE existing text; BEGIN
  IF to_regclass('public.tokentracker_self_host_installations') IS NULL OR
   NOT EXISTS(SELECT 1 FROM public.tokentracker_cloud_policy WHERE hosting_mode='self_hosted') THEN
@@ -19,6 +21,15 @@ function buildSql({transactional=true}={}) {
   INSERT INTO public.tokentracker_self_host_installations(step,checksum) VALUES('public-profiles-v1',${literal(checksum)});
  END IF;
  END $install$;
+ DO $upgrade$ DECLARE existing text; BEGIN
+ SELECT checksum INTO existing FROM public.tokentracker_self_host_installations WHERE step='public-profile-identity-v2';
+ IF FOUND THEN
+  IF existing<>${literal(upgradeChecksum)} THEN RAISE EXCEPTION 'Installed identity addon changed'; END IF;
+ ELSE
+  EXECUTE ${literal(upgrade)};
+  INSERT INTO public.tokentracker_self_host_installations(step,checksum) VALUES('public-profile-identity-v2',${literal(upgradeChecksum)});
+ END IF;
+ END $upgrade$;
  NOTIFY pgrst,'reload schema';`;
  return (transactional?"BEGIN;\nSELECT pg_advisory_xact_lock(hashtextextended('tokentracker:self-host-install',0));\n":"")+body+(transactional?'\nCOMMIT;':'');
 }
