@@ -1,9 +1,11 @@
+import { validPublicAvatar } from "./cloud/public-avatar.ts";
 /**
  * InsForge Edge：公开资料开关。
  * Deno 内优先用 fetch 调 /api/auth/sessions/current 解析 user id（与浏览器 curl 一致）；
  * SDK 的 getCurrentUser() 在部分 Edge 运行时上对出站请求处理不稳定。
  */
 import { createClient } from "npm:@insforge/sdk";
+import { billingUserId } from "./cloud/auth.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -14,7 +16,7 @@ const cors = {
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...cors, "Content-Type": "application/json" },
+    headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
 }
 
@@ -40,6 +42,11 @@ function b64urlToBytes(s: string): Uint8Array {
  * caller surfaces that as 401.
  */
 async function verifiedUserIdFromJwt(token: string): Promise<string | null> {
+  if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1") {
+    try { return await billingUserId("Bearer " + token, {
+      jwtSecret: Deno.env.get("JWT_SECRET"), jwtPublicKey: Deno.env.get("JWT_PUBLIC_KEY"),
+    }); } catch { return null; }
+  }
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   try {
@@ -98,18 +105,20 @@ export default async function (req: Request): Promise<Response> {
   });
 
   if (req.method === "GET") {
-    const { data } = await client.database
+    const selfHostedPublic = Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1";
+    const { data, error } = await client.database
       .from("tokentracker_user_settings")
-      .select("leaderboard_public, leaderboard_anonymous, github_url, show_github_url, updated_at")
+      .select("leaderboard_public, leaderboard_anonymous, github_url, show_github_url, updated_at" + (selfHostedPublic ? ", display_name, avatar_url" : ""))
       .eq("user_id", userId)
       .maybeSingle();
-    const { data: pv } = await client.database
+    if (selfHostedPublic && error) return json({error:"Failed to load public settings"},500);
+    const { data: pv } = selfHostedPublic ? {data:null} : await client.database
       .from("tokentracker_public_views")
       .select("token_hash, updated_at")
       .eq("user_id", userId)
       .is("revoked_at", null)
       .maybeSingle();
-    const { data: profile } = await client.database
+    const { data: profile } = selfHostedPublic ? {data:null} : await client.database
       .from("tokentracker_user_profiles")
       .select("display_name")
       .eq("user_id", userId)
@@ -119,7 +128,8 @@ export default async function (req: Request): Promise<Response> {
       anonymous: data?.leaderboard_anonymous || false,
       share_token: pv?.token_hash || null,
       updated_at: data?.updated_at || null,
-      display_name: profile?.display_name || null,
+      display_name: selfHostedPublic ? (data?.display_name ?? null) : (profile?.display_name || null),
+      ...(selfHostedPublic ? {avatar_url:data?.avatar_url ?? null} : {}),
       github_url: data?.github_url || null,
       show_github_url: data?.show_github_url || false,
     });
@@ -129,9 +139,11 @@ export default async function (req: Request): Promise<Response> {
       enabled?: boolean;
       anonymous?: boolean;
       display_name?: string;
+      avatar_url?: string | null;
       github_url?: string | null;
       show_github_url?: boolean;
     };
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({error:"Invalid settings"},400);
     const now = new Date().toISOString();
 
     // Validate github_url (optional). Accept public GitHub profile URLs only —
@@ -162,6 +174,26 @@ export default async function (req: Request): Promise<Response> {
     let normalizedDisplayName: string | null | undefined = undefined;
     if (typeof body.display_name === "string") {
       normalizedDisplayName = body.display_name.trim().slice(0, 50) || null;
+    }
+
+    if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1") {
+      for (const key of ["enabled","anonymous","show_github_url"] as const) {
+        if(body[key] !== undefined && typeof body[key] !== "boolean")return json({error:"Invalid boolean setting"},400);
+      }
+      let avatar: string | null | undefined;
+      if (body.avatar_url !== undefined) {
+        if (body.avatar_url === null) avatar = null;
+        else if (typeof body.avatar_url === "string" && validPublicAvatar(body.avatar_url)) avatar = body.avatar_url;
+        else return json({error:"Invalid avatar image"},400);
+      }
+      const patch:Record<string,unknown>={};
+      if(avatar!==undefined)patch.avatar_url=avatar;
+      for(const key of ["enabled","anonymous","show_github_url"] as const)if(body[key]!==undefined)patch[key]=body[key];
+      if(normalizedDisplayName!==undefined)patch.display_name=normalizedDisplayName;
+      if(normalizedGithubUrl!==undefined)patch.github_url=normalizedGithubUrl;
+      const {data,error}=await client.database.rpc("self_host_set_public_profile",{p_user_id:userId,p_patch:patch});
+      if(error)return json({error:"Failed to save public profile"},500);
+      return json(data);
     }
 
     // Persist everything to tokentracker_user_settings — the writable base table.

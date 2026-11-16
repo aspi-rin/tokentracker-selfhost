@@ -371,6 +371,13 @@
       "cache_read": 0.5,
       "note": "Cursor Composer 2.5 Fast. Cursor Models & Pricing: $3/M input, $0.50/M cached input, $15/M output. Kept separate from the cheaper base SKU."
     },
+    "gemini-4-hydrogen": {
+      "input": 1.5,
+      "output": 7.5,
+      "cache_read": 0.075,
+      "cache_write": 0,
+      "note": "Google Gemini 4 Hydrogen Standard API list rate: $1.50/M input, $7.50/M output including thinking, $0.075/M implicit cache read. Verified 2026-11-16 from https://aistudio.google.com/docs/pricing#gemini-4-hydrogen. Cache-write charging starts 2027-01-12; no per-token write charge is applied before that date. This is API-equivalent usage, not an Antigravity subscription bill. Cache-write effective date source: https://cloud.google.com/model-garden/pricing (cache-write footnote)."
+    },
     "gemini-4-argon": {
       "input": 2.0,
       "output": 10.0,
@@ -951,6 +958,10 @@
     {
       "match": "gpt-5.6",
       "ref": "gpt-5.6-sol"
+    },
+    {
+      "match": "gemini-4-hydrogen",
+      "ref": "gemini-4-hydrogen"
     },
     {
       "match": "gemini-4-argon",

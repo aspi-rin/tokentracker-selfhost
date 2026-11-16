@@ -177,7 +177,7 @@ function DisplayNameField({ name }) {
 
   const displayValue = anonymousOn
     ? copy("settings.account.displayNameAnonymousHint")
-    : (customDisplayName || displayName);
+    : (customDisplayName || (name.publicIdentityOnly ? copy("settings.account.publicNameUnset") : displayName));
 
   return (
     <SettingsField

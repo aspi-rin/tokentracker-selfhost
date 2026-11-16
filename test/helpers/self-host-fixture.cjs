@@ -20,13 +20,14 @@ async function platform() {
     GRANT SELECT(id) ON auth.users TO project_admin;`);
   return db;
 }
-async function fixture() {
+async function fixture({publicProfiles=false}={}) {
   const db=await platform();await install(db);await install(db);
+  if(publicProfiles){const addon=require("../../scripts/self-host/install-public.cjs");await addon.install(db);await addon.install(db);}
   const directory=await fs.mkdtemp(path.join(os.tmpdir(),"tokentracker-self-host-"));
-  const manifest=await buildFunctions(directory);
+  const manifest=await buildFunctions(directory,{publicProfiles});
   const sdk=path.join(path.dirname(require.resolve("@insforge/sdk",{paths:[path.join(root,"dashboard")]})),"index.mjs");
   const handlers={};
-  for(const slug of privateFunctions) {
+  for(const {slug} of manifest.functions) {
     const filename=path.join(directory,slug+".js");
     const output=await build({entryPoints:[filename],bundle:true,write:false,format:"cjs",platform:"node",target:"node20",logLevel:"silent",
       alias:{"npm:@insforge/sdk":sdk,"npm:@insforge/sdk@1.4.5":sdk,
@@ -51,6 +52,7 @@ async function fixture() {
   };
   const env={INSFORGE_SERVICE_ROLE_KEY:token(randomUUID(),"project_admin"),ANON_KEY:token(randomUUID(),"anon"),
     JWT_SECRET:secret,TOKENTRACKER_BILLING_ENVIRONMENT:"live",TOKENTRACKER_DASHBOARD_URL:"https://private.example.test"};
+  if(publicProfiles){env.TOKENTRACKER_PUBLIC_PROFILES_ENABLED="1";env.TOKENTRACKER_PUBLIC_REFRESH_SECRET="synthetic-refresh-"+randomUUID();}
   const serverCredential=env.INSFORGE_SERVICE_ROLE_KEY;
   const server=http.createServer(async(req,res)=>{
     const send=(status,value)=>{res.writeHead(status,{"Content-Type":"application/json"});res.end(JSON.stringify(value));};

@@ -409,6 +409,7 @@ export async function getLeaderboard({
  * anonymous platform adoption without exposing user-level rows.
  */
 export async function getCommunityModels() {
+  if (import.meta.env.VITE_TOKENTRACKER_PUBLIC_PROFILES === "1") return { top_models: [] };
   if (isMockEnabled()) return { top_models: [] };
   return fetchInsforgeFunction("tokentracker-community-models", {});
 }
@@ -425,6 +426,7 @@ export async function setPublicVisibility({
   enabled,
   anonymous,
   display_name,
+  avatar_url,
   github_url,
   show_github_url,
 }: AnyRecord = {}) {
@@ -432,6 +434,7 @@ export async function setPublicVisibility({
   if (enabled !== undefined) body.enabled = Boolean(enabled);
   if (anonymous !== undefined) body.anonymous = Boolean(anonymous);
   if (display_name !== undefined) body.display_name = String(display_name);
+  if (avatar_url !== undefined) body.avatar_url = avatar_url === null ? null : String(avatar_url);
   // null is a valid value (clears the URL), so check for presence via `in`-style
   if (github_url !== undefined) body.github_url = github_url === null ? null : String(github_url);
   if (show_github_url !== undefined) body.show_github_url = Boolean(show_github_url);

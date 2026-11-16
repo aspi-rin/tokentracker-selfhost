@@ -564,7 +564,7 @@ settings.account.cloudSyncHint,ui,SettingsPage,SettingsPage,cloud_sync_hint,"Syn
 settings.account.cloudSyncPending,ui,SettingsPage,SettingsPage,cloud_sync_pending,"Trying to sync…",,active
 settings.account.cloudSyncError,ui,SettingsPage,SettingsPage,cloud_sync_error,"Sync could not complete. Check your connection, local service and sign-in, then retry. Local records are unaffected.",,active
 settings.account.publicProfile,ui,SettingsPage,SettingsPage,public_profile,"Public profile",,active
-settings.account.publicProfileHint,ui,SettingsPage,SettingsPage,public_profile_hint,"Show your usage on the public leaderboard.",,active
+settings.account.publicProfileHint,ui,SettingsPage,SettingsPage,public_profile_hint,"Publish your token totals, estimated costs, model breakdown and activity history. Turn off to hide your public profile.",,active
 settings.account.displayNameAnonymousHint,ui,SettingsPage,SettingsPage,display_name_anon_hint,"Anonymous — your name and avatar are hidden on the leaderboard",,active
 settings.account.displayNameDisabledWhileAnon,ui,SettingsPage,SettingsPage,display_name_disabled,"Turn on the switch first to edit your name",,active
 settings.account.githubUrl,ui,SettingsPage,SettingsPage,github_url,"GitHub profile",,active
@@ -2184,3 +2184,11 @@ limits.cursor.connection.manage,dashboard,LimitsPage,CursorConnectionControl,man
 limits.cursor.connection.retry,dashboard,LimitsPage,CursorConnectionControl,retry,Retry connection,,active
 limits.cursor.connection.description,dashboard,LimitsPage,CursorConnectionControl,description,Cursor encrypts its saved sign-in. Connect on Cursor's website to read your usage and limits.,,active
 limits.cursor.connection.privacy,dashboard,LimitsPage,CursorConnectionControl,privacy,Your sign-in credentials stay on this device and are never sent to TokenTracker servers.,,active
+settings.account.publicNameUnset,dashboard,SettingsPage,PublicProfile,label,"Choose a public nickname",,active
+settings.account.avatar,dashboard,SettingsPage,PublicProfile,label,"Public avatar",,active
+settings.account.avatarHint,dashboard,SettingsPage,PublicProfile,label,"PNG, JPEG or WebP, up to 5 MB. The selected image becomes your public avatar.",,active
+settings.account.avatarUpload,dashboard,SettingsPage,PublicProfile,label,"Upload avatar",,active
+settings.account.avatarRemove,dashboard,SettingsPage,PublicProfile,label,"Remove avatar",,active
+settings.account.avatarInvalid,dashboard,SettingsPage,PublicProfile,label,"Choose a valid PNG, JPEG or WebP image up to 5 MB.",,active
+settings.account.profileSaveError,dashboard,SettingsPage,PublicProfile,label,"Could not save your public profile. Please try again.",,active
+leaderboard.column.antigravity,dashboard,SettingsPage,PublicProfile,label,"Antigravity",,active

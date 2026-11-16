@@ -20,6 +20,7 @@
  */
 import { createClient } from "npm:@insforge/sdk";
 import { readProBadges } from "./cloud/pro.ts";
+import { billingUserId } from "./cloud/auth.ts";
 
 const SOURCES_WITH_AUTHORITATIVE_COST = new Set(["grok", "cline"]);
 
@@ -39,7 +40,7 @@ const BLOCKED_LEADERBOARD_USER_IDS = new Set(
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", "CDN-Cache-Control": "no-store" },
   });
 }
 
@@ -53,6 +54,11 @@ function b64urlToBytes(s: string): Uint8Array<ArrayBuffer> {
 }
 
 async function verifyCallerUserId(req: Request): Promise<string | null> {
+  if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1") {
+    try { return await billingUserId(req.headers.get("Authorization"), {
+      jwtSecret: Deno.env.get("JWT_SECRET"), jwtPublicKey: Deno.env.get("JWT_PUBLIC_KEY"),
+    }); } catch { return null; }
+  }
   const auth = req.headers.get("Authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
   if (!token) return null;
@@ -221,7 +227,8 @@ const MODEL_PRICING: Record<string, { input: number; output: number; cache_read:
   "composer-2-fast": { input: 1.5, output: 7.5, cache_read: 0.15 },
   "composer-2.5": { input: 0.5, output: 2.5, cache_read: 0.2 },
   "composer-2.5-fast": { input: 3, output: 15, cache_read: 0.5 },
-  // Google Gemini 4 Argon (Cursor Other Models / Google introductory list rate)
+  // Gemini 4 Hydrogen Standard rate; Argon introductory rate through 2026-11-30.
+  "gemini-4-hydrogen": { input: 1.5, output: 7.5, cache_read: 0.075, cache_write: 0 },
   "gemini-4-argon": { input: 2, output: 10, cache_read: 0.1, cache_write: 0 },
   // ── Moonshot Kimi ──
   "kimi-for-coding": { input: 0.6, output: 2, cache_read: 0.15 },
@@ -510,6 +517,7 @@ function getModelPricing(model: string, source = "") {
   if (lower.includes("gpt-5.1-codex-mini")) return MODEL_PRICING["gpt-5.1-codex-mini"];
   if (lower.includes("gpt-5.1")) return MODEL_PRICING["gpt-5.1-codex"];
   if (lower.includes("gpt-5")) return MODEL_PRICING["gpt-5"];
+  if (lower.includes("gemini-4-hydrogen")) return MODEL_PRICING["gemini-4-hydrogen"];
   // gemini-4-argon must precede gemini-3 / gemini-2.5 substring matchers.
   if (lower.includes("gemini-4-argon") || lower.includes("gemini-4.argon")) return MODEL_PRICING["gemini-4-argon"];
   // Gemini 3.8/3.7/3.6 Flash introductory Standard rates must precede the
@@ -719,7 +727,7 @@ function computeRowCost(row: UsageRow): number {
 
 /** Map raw `source` to the canonical bucket used by the modal's by_provider list. */
 const KNOWN_SOURCES = new Set([
-  "acode", "codex", "claude", "gemini", "cursor", "opencode", "openclaw",
+  "acode", "codex", "claude", "gemini", "antigravity", "cursor", "opencode", "openclaw",
   "hermes", "kiro", "copilot", "pi-anthropic", "pi-github-copilot",
   "pi-copilot", "kimi", "droid", "dumate",
 ]);
@@ -913,6 +921,7 @@ export default async function (req: Request): Promise<Response> {
   // for a heavy user, while user_badges_full is a small indexed lookup.
   if (url.searchParams.get("view") === "badges") {
     if (!isSelf) return json({ error: "Forbidden" }, 403);
+    if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1") return json({badges:[],badges_include_unearned:true});
     const { data, error } = await client.database.rpc("user_badges_full", {
       p_user_id: userId,
       p_include_unearned: true,
@@ -930,6 +939,11 @@ export default async function (req: Request): Promise<Response> {
   // gate them behind `leaderboard_public`. The `leaderboard_anonymous` flag
   // is enforced separately below by hiding display_name/avatar/github_url.
   // (A `leaderboard_public=true` check would 404 ~60% of listed rows here.)
+  if (!isSelf && Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1") {
+    const {data: consent,error}=await client.database.from("tokentracker_user_settings")
+      .select("leaderboard_public").eq("user_id",userId).maybeSingle();
+    if(error || consent?.leaderboard_public !== true)return json({error:"Not found"},404);
+  }
   if (!isSelf) {
     const { data: snap } = await client.database
       .from("tokentracker_leaderboard_snapshots")
@@ -965,6 +979,9 @@ export default async function (req: Request): Promise<Response> {
       ),
     readProBadges(client, [userId]),
   ]);
+  if (Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED") === "1" && (settingsRes.error || profileRes.error)) {
+    return json({error:"Failed to fetch profile"},500);
+  }
   const badges = Array.isArray((badgesRes as { data?: unknown }).data)
     ? ((badgesRes as { data?: unknown }).data as Array<Record<string, unknown>>)
     : [];
@@ -1209,3 +1226,5 @@ export default async function (req: Request): Promise<Response> {
     badges_include_unearned: isSelf,
   });
 }
+
+export { computeRowCost, fetchDailyGroupedRows, windowBoundsForPeriod };

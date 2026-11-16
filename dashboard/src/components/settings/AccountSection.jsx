@@ -5,6 +5,7 @@ import { copy } from "../../lib/copy";
 import { useAccountProfileSettings } from "./useAccountProfileSettings.js";
 import { PublicProfileFields, SignedOutAccountSection } from "./AccountSectionParts.jsx";
 import { SectionCard, SettingsRow, ToggleSwitch } from "./Controls.jsx";
+import { PublicAvatarField } from "./PublicAvatarField.jsx";
 import { Button } from "../../ui/components/Button.jsx";
 
 export function AccountSection({ settings } = {}) {
@@ -33,7 +34,8 @@ function AccountProfileSection({ settings }) {
         onChange={settings.handlePublicProfileToggle}
         unavailable={settings.publicProfileAvailable === false}
       />
-      <PublicProfileDetails visible={settings.publicProfileOn} name={settings.name} github={settings.github} />
+      {settings.profileError ? <p role="alert" className="py-2 text-xs text-red-600 dark:text-red-400">{copy("settings.account.profileSaveError")}</p> : null}
+      <PublicProfileDetails visible={settings.publicProfileOn} name={settings.name} github={settings.github} avatar={settings.avatar} userId={settings.userId} />
     </SectionCard>
   );
 }
@@ -104,7 +106,7 @@ function PublicProfileToggleRow({ checked, disabled, onChange, unavailable }) {
   );
 }
 
-function PublicProfileDetails({ visible, name, github }) {
+function PublicProfileDetails({ visible, name, github, avatar, userId }) {
   return (
     <AnimatePresence initial={false}>
       {visible ? (
@@ -121,6 +123,7 @@ function PublicProfileDetails({ visible, name, github }) {
           className="divide-y divide-oai-gray-200/60 dark:divide-oai-gray-800/60"
         >
           <PublicProfileFields name={name} github={github} />
+          {avatar ? <PublicAvatarField key={userId} avatar={avatar} name={name} /> : null}
         </motion.div>
       ) : null}
     </AnimatePresence>
