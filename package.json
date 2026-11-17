@@ -1,6 +1,6 @@
 {
   "name": "tokentracker-cli",
-  "version": "1.5.21",
+  "version": "1.6.0",
   "description": "Personal multi-device token usage and cost tracker, with a private dashboard, optional public page, shared pricing, widgets and native apps.",
   "main": "src/cli.js",
   "bin": {
