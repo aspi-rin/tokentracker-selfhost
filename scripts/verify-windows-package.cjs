@@ -11,7 +11,7 @@ const reportPath = process.argv[3];
 const runtime = path.join(publish, "EmbeddedServer", "tokentracker");
 const required = ["TokenTracker.exe", "TokenTracker.dll", "EmbeddedServer/node.exe",
   "EmbeddedServer/tokentracker/bin/tracker.js", "EmbeddedServer/tokentracker/package-lock.json",
-  ...["index.html", "pet.html", "quota.html", "pricing.html", "terms.html", "privacy.html"]
+  ...["index.html", "quota.html", "terms.html", "privacy.html"]
     .map(name => `EmbeddedServer/tokentracker/dashboard/dist/${name}`)];
 for (const name of required) assert.ok(fs.statSync(path.join(publish, name)).isFile(), `Missing ${name}`);
 

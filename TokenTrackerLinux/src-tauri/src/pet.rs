@@ -450,6 +450,8 @@ pub fn stop_pet<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
+// Retained for legacy settings compatibility; desktop-pet entry points are disabled.
+#[allow(dead_code)]
 pub fn set_visible<R: Runtime>(app: &AppHandle<R>, visible: bool) {
     let settings = app
         .state::<PetState>()
@@ -472,6 +474,8 @@ fn push_to_dashboard<R: Runtime>(app: &AppHandle<R>, settings: &PetSettings) {
     ));
 }
 
+// Retained for legacy settings compatibility; desktop-pet entry points are disabled.
+#[allow(dead_code)]
 fn handle_dashboard_message<R: Runtime>(app: &AppHandle<R>, message: &Value) {
     match message.get("type").and_then(Value::as_str) {
         Some("getPetSettings") => push_to_dashboard(app, &app.state::<PetState>().get()),
@@ -507,6 +511,8 @@ fn handle_dashboard_message<R: Runtime>(app: &AppHandle<R>, message: &Value) {
 /// Must run before GTK initialises. Prefers XWayland whenever it is available;
 /// GTK falls back to Wayland if the X server can't be reached, and the pet then
 /// works as an ordinary (managed) Wayland window.
+// Retained for legacy settings compatibility; desktop-pet entry points are disabled.
+#[allow(dead_code)]
 pub fn prefer_x11_backend() {
     if std::env::var_os("DISPLAY").is_some() {
         std::env::set_var("GDK_BACKEND", "x11,wayland");
@@ -712,6 +718,8 @@ fn start_overlay_drag<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>)
     });
 }
 
+// Retained for legacy settings compatibility; desktop-pet entry points are disabled.
+#[allow(dead_code)]
 fn handle_pet_message<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>, message: &str) {
     match message {
         "pet:drag" | "pet:drag-left" | "pet:drag-right" => {
@@ -737,7 +745,6 @@ fn handle_pet_message<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>,
 #[tauri::command]
 pub fn pet_bridge<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, message: Value) {
     let _ = (app, window, message); // Legacy desktop-pet controls are disabled.
-
 }
 
 fn build_pet_window<R: Runtime>(
@@ -852,6 +859,8 @@ fn watch_settings<R: Runtime>(app: AppHandle<R>, parent: libc::pid_t) {
 }
 
 /// Entry point for `tokentracker-linux --pet <url>`.
+// Retained for legacy settings compatibility; desktop-pet entry points are disabled.
+#[allow(dead_code)]
 pub fn run_pet_process(base_url: String, context: tauri::Context<tauri::Wry>) {
     // SAFETY: getppid has no preconditions and cannot fail.
     let parent = unsafe { libc::getppid() };
