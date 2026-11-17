@@ -369,8 +369,6 @@
   "settings.section.appearance.description": "主题、语言、货币和数字格式。",
   "settings.section.account": "账户",
   "settings.section.account.description": "公开资料和账户详情。",
-  "settings.section.cloud": "云服务",
-  "settings.section.cloud.description": "管理 Cloud 会员、账单和设备同步。",
   "settings.section.limits": "用量与限额",
   "settings.section.limits.description": "选择用量展示方式并配置限额服务商。",
   "settings.section.network": "网络",
