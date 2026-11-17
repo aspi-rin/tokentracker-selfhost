@@ -48,13 +48,10 @@ jobs:
       # fetch + cloud OAuth. dashboard/.env.local is gitignored, hence inlined here.
       - name: Build dashboard
         env:
-          VITE_INSFORGE_BASE_URL: https://srctyff5.us-east.insforge.app
-          VITE_INSFORGE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-        run: npm run dashboard:build
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
 
-      - name: Test skill management interactions
-        run: npm --prefix dashboard test -- src/pages/SkillsPage.test.jsx
+        run: npm run dashboard:build
 
       - name: Test dashboard preferences and card lifecycle
         run: npm --prefix dashboard test -- src/hooks/use-limits-display-prefs.test.js src/ui/dashboard/views/DashboardView.test.jsx
@@ -145,9 +142,9 @@ jobs:
       # bundled dashboard/dist/index.html exists, and a fresh checkout has none.
       - name: Build dashboard
         env:
-          VITE_INSFORGE_BASE_URL: https://srctyff5.us-east.insforge.app
-          VITE_INSFORGE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
+
         run: npm run dashboard:build
 
       # The whole suite, not a hand-picked pair of files: host assumptions that
@@ -233,9 +230,9 @@ jobs:
 
       - name: Build Windows dashboard with pet and quota
         env:
-          VITE_INSFORGE_BASE_URL: https://srctyff5.us-east.insforge.app
-          VITE_INSFORGE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
+
           TOKENTRACKER_BUILD_PET: "1"
         run: npm run dashboard:build
 
