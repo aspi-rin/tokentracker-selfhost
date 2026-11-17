@@ -770,7 +770,7 @@ final class PetCharacterStore: ObservableObject {
     @Published private(set) var botColor: String
 
     private init() {
-        botColor = Self.normalizeBotColor(UserDefaults.standard.string(forKey: Self.botColorKey))
+        botColor = "auto"
         let raw = UserDefaults.standard.string(forKey: Self.defaultsKey)
         PetCatalog.shared.refresh()
         if let candidate = raw.flatMap(PetCharacter.init(rawValue:)),

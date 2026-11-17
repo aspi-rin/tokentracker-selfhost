@@ -1,3 +1,4 @@
+vi.mock("../cloud/CloudUsageExport.jsx",()=>({CloudUsageExport:()=>null}));
 import React from "react";
 import { act, cleanup, render, renderHook, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -26,7 +27,8 @@ vi.mock("../../lib/cloud-sync-prefs", () => ({
     window.dispatchEvent(new Event("tt.cloudSyncChanged"));
   },
 }));
-vi.mock("../cloud/CloudMembershipCard.jsx", () => ({ CloudMembershipCard: ({ syncControl }) => syncControl }));
+vi.mock("./SyncDevices.jsx",()=>({SyncDevices:()=>null}));
+vi.mock("./PricingSection.jsx",()=>({PricingSection:()=>null}));
 
 function deferred() {
   let resolve;
@@ -93,12 +95,12 @@ describe("explicit Settings Cloud sync", () => {
     expect(result.current.cloudSyncError).toBeNull();
   });
 
-  it("routes access failures to the existing contextual prompt without a second generic error", async () => {
+  it("keeps an authorization failure visible in personal sync settings", async () => {
     const membership = { status: "free", can_upload_cloud: false, can_read_cloud: false };
     state.sync.mockRejectedValueOnce({ code: "cloud_membership_required", membership });
     const { result } = renderHook(useAccountProfileSettings);
     await act(async () => { await result.current.handleCloudSyncToggle(); });
-    expect(result.current.cloudSyncError).toBeNull();
+    expect(result.current.cloudSyncError).toEqual({code:"cloud_membership_required"});
     expect(readCloudPromptState(state.ownerId).failure).toEqual({ code: "cloud_membership_required", source: "cloud-sync" });
     // Resolving void may mean an empty drain or cooldown; it is not upload proof.
     await act(async () => { await result.current.handleCloudSyncRetry(); });
@@ -191,22 +193,11 @@ describe("Settings sync feedback", () => {
     await act(async () => { pending.reject(new TypeError("Failed to fetch")); });
     expect(toggle).toBeEnabled();
     expect(screen.getByRole("alert")).toHaveTextContent(copy("settings.account.cloudSyncError"));
-    await act(async () => { await userEvent.click(screen.getByRole("button", { name: copy("cloud.action.retry") })); });
+    await act(async () => { await userEvent.click(screen.getByRole("button", { name: copy("shared.action.retry") })); });
     expect(state.sync).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(toggle).toHaveAttribute("aria-checked", "true");
   });
 
-  it("shows the existing trial or device guidance instead of duplicate sync error text", async () => {
-    const membership = { status: "free", environment: "live", phase: "active", trial_available: true, can_upload_cloud: false, can_read_cloud: false };
-    publishCloudPromptBilling("catalog", { environment: "live", checkout_verified: true, policy: { phase: "active", launch_at: "2000-01-01" }, providers: { waffo: true } }, null);
-    publishCloudPromptBilling("account", { membership, machine_count: 2 }, state.ownerId);
-    state.sync.mockRejectedValueOnce({ code: "cloud_membership_required", membership });
-    render(<MemoryRouter><CloudSection /></MemoryRouter>);
-    await act(async () => { await userEvent.click(screen.getByRole("switch", { name: copy("settings.account.cloudSync") })); });
-    expect(screen.getByRole("link", { name: copy("cloud.prompt.try") })).toBeInTheDocument();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: copy("cloud.action.retry") })).not.toBeInTheDocument();
-  });
 });

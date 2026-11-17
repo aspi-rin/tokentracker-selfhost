@@ -64,7 +64,7 @@ function useCloudSyncControl(getAccessToken, enabled, signedIn, userId) {
       const accessFailure = ["cloud_membership_required", "cloud_read_only_expired", "cloud_history_window_exceeded",
         "cloud_machine_limit", "machine_limit_exceeded", "cloud_machine_paused"].includes(error?.code);
       if (accessFailure) recordCloudPromptFailure(userId, error.code, error.membership, "cloud-sync");
-      else setSyncState({ scope, pending: true, error: { code: "billing_network_error" } });
+      setSyncState({ scope, pending: true, error: { code: error?.code || "billing_network_error" } });
       warnSettingsAction("cloud sync", error);
     } finally {
       scope.busy = false;

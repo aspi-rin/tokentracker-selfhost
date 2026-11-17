@@ -4,7 +4,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CornerDownLeft, Search } from "lucide-react";
 import { getNavGroups } from "../../components/Sidebar.jsx";
 import { ProviderIcon } from "./ProviderIcon.jsx";
-import { getInstalledSkills } from "../../../lib/skills-api";
 import { copy } from "../../../lib/copy";
 import { cn } from "../../../lib/cn";
 
@@ -21,7 +20,6 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
-  const [skills, setSkills] = useState([]);
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
@@ -45,13 +43,8 @@ export function CommandPalette() {
     setQuery("");
     setActive(0);
     const id = requestAnimationFrame(() => inputRef.current?.focus());
-    if (IS_LOCAL_HOST && !skills.length) {
-      getInstalledSkills()
-        .then((data) => setSkills(data?.skills || []))
-        .catch(() => setSkills([]));
-    }
     return () => cancelAnimationFrame(id);
-  }, [open, skills.length]);
+  }, [open]);
 
   const items = useMemo(() => {
     const pages = getNavGroups().flatMap((group) =>
@@ -64,16 +57,8 @@ export function CommandPalette() {
         run: () => navigate(item.to),
       })),
     );
-    const skillItems = (skills || []).map((skill) => ({
-      kind: "skill",
-      id: `skill:${skill.id || skill.directory}`,
-      label: skill.name || skill.directory,
-      sub: skill.repoOwner && skill.repoName ? `${skill.repoOwner}/${skill.repoName}` : copy("cmdk.group.skills"),
-      provider: (skill.targets || [])[0] || "claude",
-      run: () => navigate(`/skills?skill=${encodeURIComponent(skill.directory || skill.id)}`),
-    }));
-    return [...pages, ...skillItems];
-  }, [navigate, skills]);
+    return pages;
+  }, [navigate]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

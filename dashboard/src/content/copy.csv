@@ -443,7 +443,7 @@ settings.section.appearance.description,ui,SettingsPage,SettingsPage,sec_appeara
 settings.section.account,ui,SettingsPage,SettingsPage,sec_account,"Account",,active
 settings.section.account.description,ui,SettingsPage,SettingsPage,sec_account_description,"Public profile and account details.",,active
 settings.section.cloud,ui,SettingsPage,CloudSection,sec_cloud,"Cloud",,active
-settings.section.cloud.description,ui,SettingsPage,CloudSection,sec_cloud_description,"Manage Cloud membership, billing, and device sync.",,active
+settings.section.cloud.description,ui,SettingsPage,CloudSection,sec_cloud_description,"Manage device sync, exports and model prices.",,active
 settings.section.limits,ui,SettingsPage,SettingsPage,sec_limits,"Usage & Limits",,active
 settings.section.limits.description,ui,SettingsPage,SettingsPage,sec_limits_description,"Choose how usage is shown and configure limit providers.",,active
 settings.section.network,ui,SettingsPage,NetworkSection,sec_network,"Network",,active
@@ -2192,3 +2192,19 @@ settings.account.avatarRemove,dashboard,SettingsPage,PublicProfile,label,"Remove
 settings.account.avatarInvalid,dashboard,SettingsPage,PublicProfile,label,"Choose a valid PNG, JPEG or WebP image up to 5 MB.",,active
 settings.account.profileSaveError,dashboard,SettingsPage,PublicProfile,label,"Could not save your public profile. Please try again.",,active
 leaderboard.column.antigravity,dashboard,SettingsPage,PublicProfile,label,"Antigravity",,active
+personal.home.title,personal,SettingsPage,PersonalInstance,title,My usage page,,active
+personal.home.private,personal,SettingsPage,PersonalInstance,private,This usage page is private or not published.,,active
+personal.sync.title,personal,SettingsPage,PersonalInstance,title,Sync & devices,,active
+personal.sync.error,personal,SettingsPage,PersonalInstance,error,Device operation failed. Please retry.,,active
+personal.sync.sign_in,personal,SettingsPage,PersonalInstance,sign_in,Sign in to connect and manage your devices.,,active
+personal.pricing.title,personal,SettingsPage,PersonalInstance,title,Model prices,,active
+personal.pricing.description,personal,SettingsPage,PersonalInstance,description,Local and server estimates use the same versioned price catalog. Unknown models remain marked as unpriced.,,active
+personal.pricing.version,personal,SettingsPage,PersonalInstance,version,Catalog version: {{version}},,active
+personal.pricing.updated,personal,SettingsPage,PersonalInstance,updated,Updated: {{when}},,active
+personal.pricing.local_stale,personal,SettingsPage,PersonalInstance,local_stale,Local prices are offline or use a different version. They will refresh when the instance is reachable.,,active
+personal.pricing.error,personal,SettingsPage,PersonalInstance,error,Price update failed. The last available catalog is retained.,,active
+personal.pricing.refresh,personal,SettingsPage,PersonalInstance,refresh,Refresh prices,,active
+shared.loading,shared,*,Loading,status,Loading…,,active
+shared.action.retry,shared,*,Button,retry,Retry,,active
+personal.sync.description,personal,SettingsPage,PersonalInstance,description,"Manage device sync, exports and model prices.",,active
+personal.pricing.bundled,personal,SettingsPage,PersonalInstance,source,Included model prices,,active

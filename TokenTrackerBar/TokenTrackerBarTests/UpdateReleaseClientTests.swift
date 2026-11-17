@@ -6,10 +6,10 @@ import XCTest
 /// fallback, and the guardrails around both.
 final class UpdateReleaseClientTests: XCTestCase {
 
-    private static let apiURL = "https://api.github.com/repos/xiufengsun/TokenTracker/releases/latest"
-    private static let pageURL = "https://github.com/xiufengsun/TokenTracker/releases/latest"
-    private static let tagURL = "https://github.com/xiufengsun/TokenTracker/releases/tag/v1.3.9"
-    private static let dmgURL = "https://github.com/xiufengsun/TokenTracker/releases/download/v1.3.9/TokenTrackerBar.dmg"
+    private static let apiURL = "https://api.github.com/repos/aspi-rin/tokentracker-selfhost/releases/latest"
+    private static let pageURL = "https://github.com/aspi-rin/tokentracker-selfhost/releases/latest"
+    private static let tagURL = "https://github.com/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9"
+    private static let dmgURL = "https://github.com/aspi-rin/tokentracker-selfhost/releases/download/v1.3.9/TokenTrackerBar.dmg"
     private static let epoch = Date(timeIntervalSince1970: 1_770_000_000)
 
     private final class Clock {
@@ -223,15 +223,15 @@ final class UpdateReleaseClientTests: XCTestCase {
 
     func testFallbackRejectsUnexpectedRedirectsAndInvalidTags() async throws {
         let badRedirects = [
-            "https://example.test/xiufengsun/TokenTracker/releases/tag/v1.3.9",
-            "http://github.com/xiufengsun/TokenTracker/releases/tag/v1.3.9",
+            "https://example.test/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9",
+            "http://github.com/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9",
             "https://github.com/another/repo/releases/tag/v1.3.9",
             // Same path as the entry point but with a query, so the stub serves
             // it as a terminal 200 (a literal self-redirect would loop); the
             // client must still reject it because it is not a tag page.
-            "https://github.com/xiufengsun/TokenTracker/releases/latest?ref=x",
-            "https://github.com/xiufengsun/TokenTracker/releases/tag/v1.3.9-rc.1",
-            "https://github.com/xiufengsun/TokenTracker/releases/tag/v1.3.9/extra",
+            "https://github.com/aspi-rin/tokentracker-selfhost/releases/latest?ref=x",
+            "https://github.com/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9-rc.1",
+            "https://github.com/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9/extra",
         ]
         for redirect in badRedirects {
             StubURLProtocol.reset()

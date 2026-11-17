@@ -191,13 +191,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _menu.Items.Add(_openDashboardItem);
         _menu.Items.Add(_syncItem);
         _menu.Items.Add(_quotaItem);
-        _menu.Items.Add(_petItem);
-        _menu.Items.Add(_petSizeItem);
-        _menu.Items.Add(_petCharacterItem);
         _menu.Items.Add(CreateSeparator());
         _menu.Items.Add(_startupItem);
         _menu.Items.Add(_checkUpdatesItem);
-        _menu.Items.Add(_starItem);
         _menu.Items.Add(CreateSeparator());
         _menu.Items.Add(_quitItem);
         ApplyLocaleToMenu();
@@ -268,18 +264,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         if (_quotaWindow.Enabled)
             _uiDispatcher.BeginInvoke(new Action(() => { _quotaWindow.SetEnabled(true); UpdateLimitsPolling(); _poller.RefreshNow(); }));
 
-        if (PetWindow.StoredVisible ?? showPetOnLaunch)
-        {
-            _uiDispatcher.BeginInvoke(new Action(() =>
-            {
-                EnsurePet();
-                _petWindow!.ShowPet();
-                _poller.IncludeRichStats = true;   // gather the pet's quip-pool stats
-                UpdateLimitsPolling();
-                UpdatePetMenuText();
-                RefreshSummary();
-            }));
-        }
+
     }
 
     private void UpdateLimitsPolling() => _poller.IncludeLimits = _petWindow?.IsVisible == true || _quotaWindow?.Enabled == true;
@@ -692,40 +677,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     private void ApplyDashboardPetSetting(string key, string? value)
     {
-        switch (key)
-        {
-            case "visible":
-                EnsurePet();
-                if (string.Equals(value, "true", StringComparison.OrdinalIgnoreCase))
-                {
-                    _petWindow!.ShowPet();
-                    _petWindow.StoreVisible(true);
-                    _poller.IncludeRichStats = true;
-                    UpdateLimitsPolling();
-                    _poller.RefreshNow();
-                }
-                else
-                {
-                    _petWindow!.HidePet();
-                    _petWindow.StoreVisible(false);
-                    _poller.IncludeRichStats = false;
-                    UpdateLimitsPolling();
-                }
-                UpdatePetMenuText();
-                // Echo the applied state back; the size/character cases push inside
-                // SetPetSize / SetPetCharacter already, so no unconditional re-push.
-                PushDashboardPetSettings();
-                break;
-            case "size":
-                SetPetSize(value ?? PetWindow.SizeMedium);
-                break;
-            case "character":
-                SetPetCharacter(value ?? PetWindow.CharacterClawd);
-                break;
-            case "botColor":
-                SetPetBotColor(value ?? "auto");
-                break;
-        }
+        // Existing dashboard messages cannot open/configure a desktop companion.
     }
 
     private void SetPetBotColor(string colorId)

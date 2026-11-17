@@ -1,3 +1,4 @@
+import { refreshPricing } from "./cloud/pricing.ts";
 import { createClient } from "npm:@insforge/sdk";
 import { computeRowCost, fetchDailyGroupedRows, windowBoundsForPeriod } from "./tokentracker-leaderboard-profile.ts";
 
@@ -16,9 +17,14 @@ export default async function(req:Request):Promise<Response>{
   if(req.headers.get("Authorization")!=="Bearer "+secret)return json({error:"Unauthorized"},401);
   const client=createClient({baseUrl:Deno.env.get("INSFORGE_BASE_URL")!,edgeFunctionToken:Deno.env.get("INSFORGE_SERVICE_ROLE_KEY"),anonKey:Deno.env.get("ANON_KEY")});
   try{
+    await refreshPricing();
     const users:Array<{user_id:string}>=[];
+    const owner = Deno.env.get("TOKENTRACKER_OWNER_ID");
+    if(!owner)return json({error:"Owner is not configured"},503);
     for(let offset=0;;offset+=100){
-      const {data,error}=await client.database.from("tokentracker_user_settings").select("user_id").eq("leaderboard_public",true).order("user_id").range(offset,offset+99);
+      let query=client.database.from("tokentracker_user_settings").select("user_id").eq("leaderboard_public",true);
+      if (owner) query=query.eq("user_id",owner);
+      const {data,error}=await query.order("user_id").range(offset,offset+99);
       if(error)throw Error("Consent lookup failed");
       users.push(...(data||[]) as Array<{user_id:string}>);
       if(!data||data.length<100)break;
@@ -33,7 +39,7 @@ export default async function(req:Request):Promise<Response>{
         const groups=await fetchDailyGroupedRows(client,user.user_id,bounds.from_day+"T00:00:00Z",until.toISOString(),"UTC",0);
         const row:Record<string,string|number>={user_id:user.user_id,total_tokens:0,estimated_cost_usd:0};
         for(const group of groups){
-          const n=Number(group.total_tokens)||0,column=sourceColumns[group.source]||"other_tokens";
+          const n=Number(group.total_tokens)||0,column=Object.hasOwn(sourceColumns,group.source)?sourceColumns[group.source]:"other_tokens";
           row[column]=Number(row[column]||0)+n;row.total_tokens=Number(row.total_tokens)+n;
           row.estimated_cost_usd=Number(row.estimated_cost_usd)+computeRowCost(group);
         }

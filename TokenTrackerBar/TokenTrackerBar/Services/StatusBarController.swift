@@ -1211,24 +1211,6 @@ final class StatusBarController: NSObject {
         menuBarIconItem.state = iconVisible ? .on : .off
         menu.addItem(menuBarIconItem)
 
-        if iconVisible || islandEnabled {
-            // Icon Style Submenu — the style drives both the menu bar icon and
-            // the Dynamic Island's left wing glyph, so keep it reachable
-            // whenever either surface is showing (not just the menu bar icon).
-            let iconStyleItem = NSMenuItem(title: Strings.menuIconStyle, action: nil, keyEquivalent: "")
-            let iconStyleMenu = NSMenu()
-            let currentStyle = animator?.iconStyle ?? .clawd
-            for style in MenuBarIconStyle.allCases {
-                let item = NSMenuItem(title: iconStyleLabel(style), action: #selector(selectIconStyle(_:)), keyEquivalent: "")
-                item.target = self
-                item.representedObject = style.rawValue
-                item.state = style == currentStyle ? .on : .off
-                iconStyleMenu.addItem(item)
-            }
-            iconStyleItem.submenu = iconStyleMenu
-            menu.addItem(iconStyleItem)
-        }
-
         // Display Metrics Submenu (affects both Dynamic Island & Menu Bar Icon)
         let displayItem = NSMenuItem(title: Strings.menuDisplayMetrics, action: nil, keyEquivalent: "")
         let displayMenu = NSMenu()
@@ -1288,12 +1270,6 @@ final class StatusBarController: NSObject {
         displayItem.submenu = displayMenu
         menu.addItem(displayItem)
 
-        // Desktop Pet
-        let petItem = NSMenuItem(title: Strings.menuDesktopPet, action: #selector(toggleDesktopPet), keyEquivalent: "")
-        petItem.target = self
-        petItem.state = desktopPetController.isVisible ? .on : .off
-        menu.addItem(petItem)
-
         menu.addItem(.separator())
 
         // ── Group 3: Preferences & Notifications ──
@@ -1327,9 +1303,7 @@ final class StatusBarController: NSObject {
         aboutItem.target = self
         menu.addItem(aboutItem)
 
-        let starItem = NSMenuItem(title: Strings.menuStarOnGitHub, action: #selector(openGitHub), keyEquivalent: "")
-        starItem.target = self
-        menu.addItem(starItem)
+
 
         menu.delegate = self
 

@@ -3,9 +3,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const vm = require("node:vm");
 const { test } = require("node:test");
-const { transformSync } = require("esbuild");
 const pricing = require("../src/lib/pricing");
 
 // Tencent TokenHub: 6 / 0.3 (cache hit) / 18 RMB per MTok, at ~7.2 RMB/USD (#633).
@@ -36,11 +34,9 @@ for (const slug of [
 ]) {
   test(`${slug}: hy4-preview is priced in the cloud`, () => {
     const source = fs.readFileSync(path.join(__dirname, "../dashboard/edge-patches", `${slug}.ts`), "utf8");
-    const block = source.match(/const MODEL_PRICING[\s\S]*?\nfunction getModelPricing\(model: string(?:, source = "")?\) \{[\s\S]*?\n\}/);
-    assert.ok(block, `${slug}: pricing block is present`);
-    const script = transformSync(block[0], { loader: "ts", format: "cjs" }).code;
-    const context = vm.createContext({});
-    vm.runInContext(script, context);
+    assert.match(source, /from "\.\/cloud\/pricing\.ts"/);
+    const context = require("./helpers/cloud-pricing.cjs")();
+    const compute = true;
     for (const model of models) {
       const actual = context.getModelPricing(model);
       for (const [key, value] of Object.entries(rates)) {

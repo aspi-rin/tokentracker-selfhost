@@ -90,7 +90,7 @@ internal static class Program
         // quietly in the tray when Windows auto-starts us at login or when we were only
         // spun up to relay an OAuth deep link (the pet then restores only if it was open
         // last exit). Dashboard activation below is independent of the pet preference.
-        var showPetOnLaunch = deepLink is null && !launchedAtStartup;
+        var showPetOnLaunch = false;
         var ctx = new TrayApplicationContext(showPetOnLaunch);
         trayContext = ctx;
 

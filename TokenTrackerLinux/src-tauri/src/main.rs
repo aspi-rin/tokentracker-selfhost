@@ -280,7 +280,7 @@ fn start_dashboard(app: AppHandle, window: WebviewWindow, zoom: f64) {
         oauth::deliver_pending_callback(&navigate_app);
         // The pet page is served by the same server, so a pet left on at the
         // last quit can only come back now.
-        pet::sync_pet(&navigate_app);
+        // Personal instances keep Bot in the tray; desktop pet stays closed.
     });
 }
 
@@ -392,14 +392,6 @@ fn main() {
 
     let initial_args: Vec<String> = std::env::args().collect();
     let context = tauri::generate_context!();
-
-    // `--pet <url>` runs the floating pet in its own process (see pet.rs). Still
-    // single-threaded here, so setting GDK_BACKEND before GTK starts is sound.
-    if let Some(base_url) = pet::pet_process_url(&initial_args) {
-        pet::prefer_x11_backend();
-        pet::run_pet_process(base_url, context);
-        return;
-    }
 
     tauri::Builder::default()
         .manage(PendingAuthCode::default())

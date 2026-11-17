@@ -459,7 +459,7 @@ jobs:
 
       # Same public client-side values as the macOS job: absent at build time
       # Vite inlines empty strings, breaking the leaderboard and cloud OAuth.
-      # TOKENTRACKER_BUILD_PET adds pet.html, the floating pet's page, as on Windows.
+      # The legacy native-build flag includes the quota widget entry.
       - name: Build dashboard
         env:
           TOKENTRACKER_BUILD_PET: "1"
@@ -522,7 +522,7 @@ jobs:
               "tokentracker/bin/tracker.js" \
               "tokentracker/package.json" \
               "tokentracker/dashboard/dist/index.html" \
-              "tokentracker/dashboard/dist/pet.html"
+              "tokentracker/dashboard/dist/quota.html"
             do
               if [ ! -e "$(dirname "$node_bin")/$required" ]; then
                 echo "::error::$label is missing EmbeddedServer/$required"

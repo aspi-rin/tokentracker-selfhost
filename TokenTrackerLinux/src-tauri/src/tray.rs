@@ -1,12 +1,11 @@
 use std::time::Duration;
 
 use tauri::image::Image;
-use tauri::menu::{CheckMenuItem, Menu, MenuItem};
+use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{App, AppHandle, Manager, Runtime};
 
 const OPEN_ID: &str = "open-dashboard";
-const PET_ID: &str = "show-pet";
 const QUIT_ID: &str = "quit";
 const TRAY_ID: &str = "tokentracker-tray";
 
@@ -14,7 +13,7 @@ const TRAY_ID: &str = "tokentracker-tray";
 /// desktop's tray client has finished its initial layout exchange, short
 /// enough that a user reaching for the tray immediately still gets labels.
 const MENU_REPUBLISH_DELAY: Duration = Duration::from_millis(1500);
-const FALLBACK_TRAY_ICON: &[u8] = include_bytes!("../icons/icon.png");
+const FALLBACK_TRAY_ICON: &[u8] = include_bytes!("../icons/bot-tray.png");
 
 fn fallback_tray_icon() -> tauri::Result<Image<'static>> {
     Image::from_bytes(FALLBACK_TRAY_ICON)
@@ -34,12 +33,8 @@ fn fallback_tray_icon() -> tauri::Result<Image<'static>> {
 /// too, so "Open Dashboard" as the first item is the primary entry point.
 fn build_menu<R: Runtime, M: Manager<R>>(manager: &M) -> tauri::Result<Menu<R>> {
     let open = MenuItem::with_id(manager, OPEN_ID, "Open Dashboard", true, None::<&str>)?;
-    let pet_visible = manager
-        .try_state::<crate::pet::PetState>()
-        .is_some_and(|state| state.get().visible);
-    let pet = CheckMenuItem::with_id(manager, PET_ID, "Show Pet", true, pet_visible, None::<&str>)?;
     let quit = MenuItem::with_id(manager, QUIT_ID, "Quit", true, None::<&str>)?;
-    Menu::with_items(manager, &[&open, &pet, &quit])
+    Menu::with_items(manager, &[&open, &quit])
 }
 
 /// Reflect the pet's visibility in the tray's "Show Pet" check after it changes.
@@ -108,10 +103,6 @@ pub fn install(app: &App) -> tauri::Result<()> {
         .menu(&menu)
         .on_menu_event(|app, event| match event.id().as_ref() {
             OPEN_ID => show_main_window(app),
-            PET_ID => {
-                let visible = app.state::<crate::pet::PetState>().get().visible;
-                crate::pet::set_visible(app, !visible);
-            }
             QUIT_ID => app.exit(0),
             _ => {}
         })

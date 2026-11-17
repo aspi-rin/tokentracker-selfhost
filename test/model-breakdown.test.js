@@ -462,44 +462,11 @@ test("pricing covers production MiniMax and DeepSeek model ids used by leaderboa
   assert.deepEqual(localApi.getModelPricing("DeepSeek-V4-Pro"), cases[3][1]);
 });
 
-test("leaderboard-refresh edge pricing covers MiniMax and DeepSeek model ids", () => {
-  const edgeSrc = fs.readFileSync(leaderboardRefreshPath, "utf8");
-  for (const snippet of [
-    '"MiniMax-M2.7": { input: 0.3, output: 1.2, cache_read: 0.06, cache_write: 0.375 },',
-    '"MiniMax-M2.7-highspeed": { input: 0.6, output: 2.4, cache_read: 0.06, cache_write: 0.375 },',
-    '"deepseek-v4-flash": { input: 0.44, output: 1.32, cache_read: 0.014, cache_write: 0.44 },',
-    '"deepseek-v4-pro": { input: 1.32, output: 3.96, cache_read: 0.044, cache_write: 1.32 },',
-    'lower.includes("minimax-m2.7")',
-    'lower.includes("deepseek-v4-flash")',
-    'lower.includes("deepseek-v4-pro")',
-  ]) {
-    assert.ok(edgeSrc.includes(snippet), `leaderboard-refresh must include: ${snippet}`);
+test("shared cloud pricing covers MiniMax, DeepSeek and Kiro with local parity", () => {
+  const edge = require("./helpers/cloud-pricing.cjs")();
+  for (const model of ["MiniMax-M2.7", "MiniMax-M2.7-highspeed", "deepseek-v4-flash", "deepseek-v4-pro", "kiro-agent", "kiro-cli-agent"]) {
+    assert.deepEqual(edge.getModelPricing(model), localApi.getModelPricing(model), model);
   }
-});
-
-test("local-api MODEL_PRICING Kiro entries are byte-equivalent with leaderboard-refresh edge patch", () => {
-  const edgeSrc = fs.readFileSync(leaderboardRefreshPath, "utf8");
-  // Extract the literal Kiro pricing lines from the edge patch so byte-drift
-  // between the two tables will fail this test.
-  const localKiro = localApi.MODEL_PRICING["kiro-agent"];
-  const localKiroCli = localApi.MODEL_PRICING["kiro-cli-agent"];
-  assert.ok(localKiro && localKiroCli, "local-api must have both Kiro pricing entries");
-  // Reconstruct the expected edge-patch line from local values.
-  const expected = `"kiro-agent": { input: ${localKiro.input}, output: ${localKiro.output}, cache_read: ${localKiro.cache_read}, cache_write: ${localKiro.cache_write} },`;
-  const expectedCli = `"kiro-cli-agent": { input: ${localKiroCli.input}, output: ${localKiroCli.output}, cache_read: ${localKiroCli.cache_read}, cache_write: ${localKiroCli.cache_write} },`;
-  assert.ok(
-    edgeSrc.includes(expected),
-    `leaderboard-refresh must contain kiro-agent pricing matching local-api: ${expected}`,
-  );
-  assert.ok(
-    edgeSrc.includes(expectedCli),
-    `leaderboard-refresh must contain kiro-cli-agent pricing matching local-api: ${expectedCli}`,
-  );
-  // The fuzzy rule must also exist in the edge patch.
-  assert.ok(
-    edgeSrc.includes('lower.includes("kiro")'),
-    "leaderboard-refresh must include the fuzzy kiro-* fallback rule",
-  );
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -844,7 +811,7 @@ test("#653 server-reported cost survives aggregation (Grok has no published rate
     const rows = [
       {
         source: "grok",
-        model: "grok-4.6",
+        model: "zzzz-unpublished-fixture",
         hour_start: "2026-04-20T10:00:00.000Z",
         input_tokens: 32_822,
         output_tokens: 5,
@@ -858,7 +825,7 @@ test("#653 server-reported cost survives aggregation (Grok has no published rate
       },
       {
         source: "grok",
-        model: "grok-4.6",
+        model: "zzzz-unpublished-fixture",
         hour_start: "2026-04-20T10:30:00.000Z",
         input_tokens: 33_463,
         output_tokens: 1,
@@ -874,13 +841,13 @@ test("#653 server-reported cost survives aggregation (Grok has no published rate
     await writeQueue(queuePath, rows);
 
     assert.deepEqual(
-      localApi.getModelPricing("grok-4.6"),
+      localApi.getModelPricing("zzzz-unpublished-fixture"),
       { input: 0, output: 0, cache_read: 0, cache_write: 0 },
-      "fixture assumes grok-4.6 has no published rate; if that changes this test proves nothing",
+      "fixture assumes zzzz-unpublished-fixture has no published rate; if that changes this test proves nothing",
     );
 
     const { body } = await callModelBreakdown(queuePath, "2026-04-20", "2026-04-20");
-    const grok = body.sources.flatMap((s) => s.models).find((m) => m.model === "grok-4.6");
+    const grok = body.sources.flatMap((s) => s.models).find((m) => m.model === "zzzz-unpublished-fixture");
     assert.equal(Number(grok.totals.total_cost_usd).toFixed(5), (0.06596 + 0.06718).toFixed(5));
   } finally {
     await fs.promises.rm(tmp, { recursive: true, force: true });

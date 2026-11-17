@@ -4,8 +4,6 @@ import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@t
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InsforgeAuthProvider, useInsforgeAuth } from "../InsforgeAuthContext.jsx";
-import { CloudCheckoutPage } from "../../pages/CloudCheckoutPage.jsx";
-import { readCloudPurchase } from "../../lib/cloud-checkout.js";
 import { setCopyLocale } from "../../lib/copy";
 
 // This integration test exercises auth ownership, not the plan's browser animation.
@@ -128,39 +126,4 @@ describe("known-account access token binding", () => {
     expect(client.tokenManager.clearSession).not.toHaveBeenCalled();
   });
 
-  it("does not create or cache B's checkout after switching accounts during A's token refresh", async () => {
-    let auth;
-    function AuthCloudbe() {
-      auth = useInsforgeAuth();
-      const location = useLocation();
-      return <output data-testid="account-checkout-location">{auth.user?.id}:{location.search}</output>;
-    }
-    const orderB = "22222222-2222-4222-8222-222222222222";
-    const request = vi.fn(async () => new Response(JSON.stringify({
-      order: { id: orderB, provider: "waffo", sku: "cloud_usd_monthly", checkout_url: "https://pancake.waffo.ai/checkout?owned=b" },
-      membership: { status: "free" },
-    })));
-    vi.stubGlobal("fetch", request);
-    render(<Provider><MemoryRouter initialEntries={["/billing/checkout?sku=cloud_usd_monthly"]}>
-      <CloudCheckoutPage /><AuthCloudbe />
-    </MemoryRouter></Provider>);
-    await waitFor(() => expect(auth.user?.id).toBe("account-a"));
-    state.token = null;
-    const refresh = deferred();
-    client.auth.refreshSession.mockReturnValueOnce(refresh.promise);
-    fireEvent.click(screen.getByRole("button", { name: /Continue to payment/ }));
-    await waitFor(() => expect(client.auth.refreshSession).toHaveBeenCalledTimes(1));
-    await signInB(auth);
-    await act(async () => { refresh.resolve({ data: { accessToken: state.token } }); await refresh.promise; });
-    await waitFor(() => expect(screen.getByRole("button", { name: /Continue to payment/ })).toBeEnabled());
-
-    expect(request).not.toHaveBeenCalled();
-    expect(readCloudPurchase("account-a")).toMatchObject({ userId: "account-a", sku: "cloud_usd_monthly" });
-    expect(readCloudPurchase("account-a").order_id).toBeUndefined();
-    expect(readCloudPurchase("account-b")).toBeNull();
-    expect(screen.getByTestId("account-checkout-location")).toHaveTextContent("account-b:?sku=cloud_usd_monthly");
-    expect(screen.getByTestId("account-checkout-location")).not.toHaveTextContent(orderB);
-    expect(client.auth.signOut).not.toHaveBeenCalled();
-    expect(client.tokenManager.clearSession).not.toHaveBeenCalled();
-  });
 });

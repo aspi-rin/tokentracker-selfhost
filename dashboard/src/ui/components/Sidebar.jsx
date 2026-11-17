@@ -7,9 +7,7 @@ import {
   Trophy,
   History,
   LayoutGrid,
-  PawPrint,
   Globe,
-  Puzzle,
   Activity,
   Settings as SettingsIcon,
   ChevronLeft,
@@ -25,7 +23,6 @@ import { copy } from "../../lib/copy";
 import { cn } from "../../lib/cn";
 import { useTheme } from "../../hooks/useTheme.js";
 import { useLocale } from "../../hooks/useLocale.js";
-import { shouldFetchGithubStars } from "../dashboard/util/should-fetch-github-stars.js";
 import { InsforgeUserHeaderControls } from "../../components/InsforgeUserHeaderControls.jsx";
 import { isNativeApp, isNativeEmbed, isNativeLinuxApp, isNativeWindowsApp } from "../../lib/native-bridge.js";
 
@@ -42,7 +39,7 @@ export function getNavGroups() {
         { id: "usage", to: "/dashboard", icon: BarChart3, label: copy("nav.usage") },
         { id: "sessions", to: "/sessions", icon: History, label: copy("nav.sessions") },
         { id: "limits", to: "/limits", icon: Gauge, label: copy("nav.limits") },
-        { id: "leaderboard", to: "/leaderboard", icon: Trophy, label: copy("nav.leaderboard") },
+        { id: "profile", to: "/public", icon: Trophy, label: copy("personal.home.title") },
         { id: "achievements", to: "/achievements", icon: Award, label: copy("nav.achievements") },
       ],
     },
@@ -51,8 +48,6 @@ export function getNavGroups() {
       label: copy("nav.group.tools"),
       items: [
         { id: "widgets", to: "/widgets", icon: LayoutGrid, label: copy("nav.widgets") },
-        { id: "pet", to: "/pet-settings", icon: PawPrint, label: copy("nav.pet") },
-        { id: "skills", to: "/skills", icon: Puzzle, label: copy("nav.skills") },
         { id: "ip-check", to: "/ip-check", icon: Globe, label: copy("nav.ip_check") },
         { id: "service-status", to: "/service-status", icon: Activity, label: copy("nav.service_status") },
       ],
@@ -61,7 +56,7 @@ export function getNavGroups() {
       id: "account",
       label: copy("nav.group.account"),
       items: [
-        { id: "cloud", to: "/cloud", icon: Cloud, label: copy("cloud.nav") },
+        { id: "cloud", to: "/settings?section=cloud", icon: Cloud, label: copy("personal.sync.title") },
         { id: "settings", to: "/settings", icon: SettingsIcon, label: copy("nav.settings") },
       ],
     },
@@ -106,7 +101,10 @@ function useSidebarCollapsed() {
   return { collapsed, toggle };
 }
 
-function isActive(pathname, to) {
+function isActive(pathname, to, search = "") {
+  const target = to.split("?");
+  if (target[1]) return pathname === target[0] && search === "?" + target[1];
+  if (to === "/settings" && search.includes("section=cloud")) return false;
   if (!pathname) return false;
   const normalized = pathname.replace(/\/+$/, "") || "/";
   if (to === "/dashboard") {
@@ -179,54 +177,6 @@ function IconButton({ as = "button", buttonRef, title, onClick, href, children, 
     <button ref={buttonRef} type="button" title={title} aria-label={title} onClick={onClick} className={className} {...rest}>
       {children}
     </button>
-  );
-}
-
-/**
- * Refined GitHub Star pill — Linear "Free plan" style: bordered, tight, with text + count.
- * `glassChrome`: Mac 侧栏毛玻璃上：gray-500 描边 — 亮色 /20 更淡，暗色 dark:/30 保持可见。
- */
-function StarPill({ repo = "xiufengsun/TokenTracker", glassChrome = false }) {
-  const [stars, setStars] = useState(null);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const prefersReducedMotion =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!shouldFetchGithubStars({ prefersReducedMotion, screenshotCapture: false })) return;
-    fetch(`https://api.github.com/repos/${repo}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && typeof data.stargazers_count === "number") setStars(data.stargazers_count);
-      })
-      .catch(() => {});
-  }, [repo]);
-
-  return (
-    <a
-      href={`https://github.com/${repo}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={stars !== null ? `Star on GitHub (${stars})` : "Star on GitHub"}
-      className="tt-sidebar-star inline-flex shrink-0 items-center rounded-full no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand-500"
-    >
-      <span className={cn(
-        "tt-sidebar-pill inline-flex items-center gap-1.5 rounded-full px-2.5 text-xs font-medium transition-colors",
-        glassChrome
-          ? "border border-gray-500/20 dark:border-gray-500/30 bg-gray-500/[0.04] dark:bg-gray-500/[0.06] backdrop-blur-[2px] text-oai-gray-700 dark:text-oai-gray-300 hover:bg-gray-500/10 dark:hover:bg-gray-500/12 hover:border-gray-500/30 dark:hover:border-gray-500/40 hover:text-oai-black dark:hover:text-white"
-          : "border border-oai-gray-200 dark:border-oai-gray-700 text-oai-gray-600 dark:text-oai-gray-400 hover:bg-oai-gray-200/60 dark:hover:bg-oai-gray-800 hover:text-oai-black dark:hover:text-white hover:border-oai-gray-300 dark:hover:border-oai-gray-600",
-      )}>
-      <svg height="12" viewBox="0 0 16 16" width="12" className="shrink-0 fill-current">
-        <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z" />
-      </svg>
-      <span>{copy("shared.github.star")}</span>
-      {stars !== null && (
-        <span className="text-[10px] text-oai-gray-500 dark:text-oai-gray-500 tabular-nums">
-          {stars}
-        </span>
-      )}
-      </span>
-    </a>
   );
 }
 
@@ -395,7 +345,7 @@ function SidebarBody({
                     key={item.id}
                     item={item}
                     collapsed={collapsed}
-                    active={isActive(pathname, item.to)}
+                    active={isActive(pathname, item.to, location.search)}
                     onClick={onItemClick}
                   />
                 ))}
@@ -412,7 +362,6 @@ function SidebarBody({
         )}
       >
         <ThemePill theme={theme} resolvedTheme={resolvedTheme} onSetTheme={setTheme} glassChrome={glassChrome} />
-        {!collapsed && <StarPill glassChrome={glassChrome} />}
       </div>
     </>
   );

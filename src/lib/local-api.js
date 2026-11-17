@@ -1884,7 +1884,21 @@ function createLocalApiHandler({ queuePath, serverVersion = null, trackerDataDir
   };
 
   return async function handleLocalApi(req, res, url) {
+    if (url.pathname.startsWith("/functions/tokentracker-usage-") && fs.existsSync(path.join(isolatedTrackerDataDir || path.dirname(qp), "config.json"))) {
+      await ensurePricingLoaded({ instanceOnly:true, configPath: path.join(isolatedTrackerDataDir || path.dirname(qp), "config.json") }).catch(() => {});
+    }
+
     const p = url.pathname;
+    if (p === "/functions/tokentracker-pricing-status") {
+      if (req.method !== "GET") { json(res, {error:"method_not_allowed"}, 405); return true; }
+      if (!isAuthorizedLocalMutation(req)) { json(res, {error:"unauthorized"}, 401); return true; }
+      await ensurePricingLoaded({ instanceOnly:true, configPath: path.join(isolatedTrackerDataDir || path.dirname(qp), "config.json") }).catch(() => {});
+      json(res, require("./pricing").getPricingCatalogInfo() || {version:null,stale:true});
+      return true;
+    }
+    if (p.startsWith("/functions/tokentracker-skills") || p.startsWith("/api/skills") || p.startsWith("/api/pets") || p === "/functions/tokentracker-pets") {
+      json(res, {error:"feature_removed"}, 410); return true;
+    }
     if (p === "/api/deepseek-status") return relayProviderStatus("deepseek", "DeepSeek")(req, res);
     if (p === "/api/opencode-status") return relayProviderStatus("opencode", "OpenCode")(req, res);
     if (p === "/api/local-usage") {
@@ -3700,21 +3714,9 @@ function createLocalApiHandler({ queuePath, serverVersion = null, trackerDataDir
       return true;
     }
 
-    // --- telemetry preference (anonymous analytics opt-out mirror) ---
-    // The dashboard's analytics init on localhost / native-app surfaces asks
-    // this before sending anything, so TOKENTRACKER_NO_TELEMETRY /
-    // DO_NOT_TRACK / config.json `"telemetry": false` turn off dashboard
-    // analytics together with the daily heartbeat (src/lib/telemetry.js).
+    // Older dashboard bundles use this route before enabling telemetry.
     if (p === "/functions/tokentracker-telemetry-pref") {
-      const { isTelemetryDisabled } = require("./telemetry");
-      let config = {};
-      try {
-        config = JSON.parse(fs.readFileSync(path.join(path.dirname(qp), "config.json"), "utf8")) || {};
-      } catch {
-        config = {};
-      }
-      json(res, { disabled: isTelemetryDisabled({ env: process.env, config }) });
-      return true;
+      json(res, {disabled:true});return true;
     }
 
     // --- machine-id (stable per-machine device identity for cloud sync) ---
@@ -3873,182 +3875,6 @@ function createLocalApiHandler({ queuePath, serverVersion = null, trackerDataDir
         json(res, { ok: false, error: "Method Not Allowed" }, 405);
       } catch (error) {
         json(res, { ok: false, error: error?.message || "Subscription operation failed" }, 400);
-      }
-      return true;
-    }
-
-    // --- skills manager ---
-    if (p === "/functions/tokentracker-skills") {
-      const method = String(req.method || "GET").toUpperCase();
-      const skills = require("./skills-manager");
-      try {
-        if (method === "GET") {
-          const mode = url.searchParams.get("mode") || "installed";
-          if (mode === "installed") {
-            json(res, { targets: skills.targetList(), skills: skills.listInstalledSkills() });
-            return true;
-          }
-          if (mode === "repos") {
-            json(res, { repos: skills.listRepos() });
-            return true;
-          }
-          if (mode === "discover") {
-            const force = url.searchParams.get("force") === "1";
-            json(res, await skills.discoverSkills({ force }));
-            return true;
-          }
-          if (mode === "search") {
-            const data = await skills.searchSkillsSh(
-              url.searchParams.get("q") || "",
-              Number(url.searchParams.get("limit") || 20),
-              Number(url.searchParams.get("offset") || 0),
-            );
-            json(res, data);
-            return true;
-          }
-          if (mode === "popular") {
-            const force = url.searchParams.get("force") === "1";
-            json(res, await skills.fetchPopularSkillsSh({ force }));
-            return true;
-          }
-          if (mode === "updates") {
-            const force = url.searchParams.get("force") === "1";
-            json(res, await skills.checkUpdates({ force }));
-            return true;
-          }
-          if (mode === "activity") {
-            const limit = Number(url.searchParams.get("limit") || 50);
-            json(res, { activity: skills.readActivity(limit) });
-            return true;
-          }
-          if (mode === "skill_usage") {
-            const force = url.searchParams.get("force") === "1";
-            const usage = await require("./skill-usage").scanSkillUsage({ force });
-            await ensurePricingLoaded();
-            // Join raw per-skill aggregates against installed skills so we can
-            // separate user-installed skills (where "dead weight" = unused) from
-            // Claude Code built-in tools (bash/agent/…), which dominate the logs
-            // and are NOT uninstallable. Cost is priced per-model (source=claude).
-            const installed = skills.listInstalledSkills();
-            const skillDirectoryLeaf = (value) =>
-              String(value || "").replace(/\\/g, "/").split("/").filter(Boolean).pop()?.trim().toLowerCase() || "";
-            const leafCounts = new Map();
-            for (const s of installed) {
-              const leaf = skillDirectoryLeaf(s.directory);
-              if (leaf) leafCounts.set(leaf, (leafCounts.get(leaf) || 0) + 1);
-            }
-            const installedByDirectory = new Map();
-            const installedByLeaf = new Map();
-            const nameCounts = new Map();
-            const installedByName = new Map();
-            for (const s of installed) {
-              const dir = String(s.directory || "").trim().toLowerCase();
-              if (dir) installedByDirectory.set(dir, s);
-              const leaf = skillDirectoryLeaf(s.directory);
-              if (leaf && leafCounts.get(leaf) === 1) installedByLeaf.set(leaf, s);
-              const name = String(s.name || "").trim().toLowerCase();
-              if (name) {
-                nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
-                if (!installedByName.has(name)) installedByName.set(name, s);
-              }
-            }
-            const findInstalledSkill = (value) => {
-              const norm = String(value || "").trim().toLowerCase();
-              if (!norm) return null;
-              if (installedByDirectory.has(norm)) return installedByDirectory.get(norm);
-              if (installedByLeaf.has(norm)) return installedByLeaf.get(norm);
-              if (nameCounts.get(norm) === 1) return installedByName.get(norm);
-              if (leafCounts.get(norm) > 1) return null;
-              return null;
-            };
-            const usedSkillIds = new Set();
-            const priced = usage.skills.map((entry) => {
-              let cost = 0;
-              for (const [model, tokens] of Object.entries(entry.models || {})) {
-                cost += computeRowCost({ ...tokens, model, source: "claude" });
-              }
-              const match = findInstalledSkill(entry.skill);
-              if (match?.id) usedSkillIds.add(match.id);
-              return {
-                skill: entry.skill,
-                invocations: entry.invocations,
-                lastUsedAt: entry.lastUsedAt,
-                tokens: entry.tokens,
-                cost,
-                installed: Boolean(match),
-                skillId: match?.id || null,
-                directory: match?.directory || null,
-              };
-            });
-            // Installed skills with zero invocations = dead-weight candidates.
-            const unusedInstalled = installed
-              .filter((s) => !s.readOnly && !usedSkillIds.has(s.id))
-              .map((s) => ({ skillId: s.id, directory: s.directory, name: s.name }));
-            json(res, {
-              generatedAt: usage.generatedAt,
-              scannedFiles: usage.scannedFiles,
-              totalInvocations: usage.totalInvocations,
-              cached: usage.cached,
-              skills: priced,
-              unusedInstalled,
-            });
-            return true;
-          }
-          json(res, { error: "Unknown skills mode" }, 400);
-          return true;
-        }
-
-        if (method === "POST") {
-          if (!isAuthorizedLocalMutation(req)) {
-            json(res, { ok: false, error: "Unauthorized" }, 401);
-            return true;
-          }
-          const body = await readJsonBody(req);
-          const action = String(body?.action || "");
-          if (action === "install") {
-            json(res, { ok: true, skill: await skills.installSkill(body.skill, body.targets || ["claude", "codex"]) });
-            return true;
-          }
-          if (action === "update_all") {
-            // Partial success is normal, so this reports per-skill rather than failing.
-            json(res, { ok: true, ...(await skills.updateSkills(Array.isArray(body.ids) ? body.ids : [])) });
-            return true;
-          }
-          if (action === "uninstall") {
-            json(res, { ok: true, ...(skills.uninstallSkill(body.id) || {}) });
-            return true;
-          }
-          if (action === "restore") {
-            json(res, { ok: true, skill: skills.restoreSkill(body.id) });
-            return true;
-          }
-          if (action === "set_targets") {
-            json(res, { ok: true, skill: skills.setSkillTargets(body.id, body.targets || []) });
-            return true;
-          }
-          if (action === "import_local") {
-            json(res, { ok: true, skill: skills.importLocalSkill(body.directory, body.targets || []) });
-            return true;
-          }
-          if (action === "delete_local") {
-            json(res, { ok: true, ...(skills.deleteLocalSkill(body.directory, body.targets || []) || {}) });
-            return true;
-          }
-          if (action === "add_repo") {
-            json(res, { ok: true, repo: skills.addRepo(body.repo) });
-            return true;
-          }
-          if (action === "remove_repo") {
-            json(res, { ok: true, ...(skills.removeRepo(body.owner, body.name) || {}) });
-            return true;
-          }
-          json(res, { ok: false, error: "Unknown skills action" }, 400);
-          return true;
-        }
-
-        json(res, { ok: false, error: "Method Not Allowed" }, 405);
-      } catch (e) {
-        json(res, { ok: false, error: e?.message || "Unknown skills error" }, 500);
       }
       return true;
     }

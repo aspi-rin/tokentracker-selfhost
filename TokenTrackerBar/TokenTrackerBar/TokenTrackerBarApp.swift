@@ -146,7 +146,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         // Bring the desktop pet back if it was showing when the app last quit.
-        desktopPetController.restoreIfNeeded()
+        // The personal app keeps only the Bot status-bar renderer.
 
         // Bring the Dynamic Island back if it was enabled when the app last quit.
         dynamicIslandController.restoreIfNeeded()

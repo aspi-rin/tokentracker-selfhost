@@ -332,7 +332,7 @@ pub fn sync_pet<R: Runtime>(app: &AppHandle<R>) {
     };
     // Read under the lock: the relay thread and a tray toggle can both get
     // here, and a stale `visible` would restart a pet that was just stopped.
-    let visible = app.state::<PetState>().get().visible;
+    let visible = false; // Personal edition has no desktop pet.
     let base_url = app.state::<DashboardBaseUrl>().get();
 
     let running = match child.as_mut() {
@@ -736,11 +736,8 @@ fn handle_pet_message<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>,
 /// and the dashboard's Pet page (`{ type, key?, value? }` objects, main process).
 #[tauri::command]
 pub fn pet_bridge<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, message: Value) {
-    match (window.label(), &message) {
-        (PET_LABEL, Value::String(text)) => handle_pet_message(&app, &window, text),
-        (MAIN_LABEL, Value::Object(_)) => handle_dashboard_message(&app, &message),
-        _ => {}
-    }
+    let _ = (app, window, message); // Legacy desktop-pet controls are disabled.
+
 }
 
 fn build_pet_window<R: Runtime>(

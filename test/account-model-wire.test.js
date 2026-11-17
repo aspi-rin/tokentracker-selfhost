@@ -34,6 +34,7 @@ const fixture = {
 
 function loadEdge(endpoint, data, legacy = false) {
   let source = fs.readFileSync(path.join(edgeDir, `tokentracker-account-${endpoint}.ts`), "utf8");
+  source = source.replace(/^import \{([^}]+)\} from "\.\/cloud\/pricing\.ts";/m, 'const {$1} = __pricing;');
   source = source.replace('import { createClient } from "npm:@insforge/sdk";', "const createClient = __createClient;");
   // Keep the real guard helper in this VM; the transport fixture represents
   // preview membership. Entitlement behavior is tested with PostgreSQL and
@@ -53,6 +54,7 @@ function loadEdge(endpoint, data, legacy = false) {
   const code = transformSync(source, { loader: "ts", format: "cjs", target: "es2022" }).code;
   const calls = [];
   const context = {
+    __pricing: {...require("./helpers/cloud-pricing.cjs")(),loadPricing:async()=>{}},
     module: { exports: {} }, exports: {}, Request, Response, URL, Headers,
     TextEncoder, TextDecoder, Uint8Array, atob, crypto: webcrypto,
     Deno: { env: { get: (name) => ({ INSFORGE_BASE_URL: "https://test.invalid", INSFORGE_SERVICE_ROLE_KEY: "test-service-role", JWT_SECRET: "test-jwt-secret" })[name] } },

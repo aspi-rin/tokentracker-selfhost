@@ -37,7 +37,7 @@ async function makeQueueDir() {
 test("telemetry-pref reports enabled by default", async () => {
   const queuePath = await makeQueueDir();
   const body = await callTelemetryPref(queuePath);
-  assert.deepEqual(body, { disabled: false });
+  assert.deepEqual(body, { disabled: true });
 });
 
 test("telemetry-pref reflects config.json telemetry:false", async () => {
@@ -67,5 +67,5 @@ test("telemetry-pref survives corrupt config.json", async () => {
   const queuePath = await makeQueueDir();
   await fs.promises.writeFile(path.join(path.dirname(queuePath), "config.json"), "{not json");
   const body = await callTelemetryPref(queuePath);
-  assert.deepEqual(body, { disabled: false });
+  assert.deepEqual(body, { disabled: true });
 });

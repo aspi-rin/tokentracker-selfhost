@@ -42,6 +42,7 @@ function EditNameControls({ nameInput, setEditingName, setNameInput, profileSavi
         maxLength={50}
         autoFocus
         className={`flex-1 ${SETTINGS_INPUT_CLASS}`}
+        aria-label={copy("settings.account.displayName")}
         placeholder={copy("settings.account.displayName")}
       />
       <InlineEditorActions

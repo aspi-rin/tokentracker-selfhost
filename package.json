@@ -1,7 +1,7 @@
 {
   "name": "tokentracker-cli",
   "version": "1.5.21",
-  "description": "Local-first AI coding token usage and cost tracker for 47 tools, with a dashboard, desktop pet, widgets, achievements, and native macOS/Windows apps.",
+  "description": "Personal multi-device token usage and cost tracker, with a private dashboard, optional public page, shared pricing, widgets and native apps.",
   "main": "src/cli.js",
   "bin": {
     "tokentracker-cli": "bin/tracker.js",
@@ -53,7 +53,6 @@
   "dependencies": {
     "@journeyapps/wa-sqlite": "2.0.10",
     "@mongodb-js/zstd": "^2.0.1",
-    "@sentry/node": "^11.8.0",
     "smol-toml": "^1.9.0",
     "undici": "8.12.4",
     "yauzl": "^3.4.0"
@@ -61,20 +60,17 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@sourcegraph/scip-typescript": "^0.6.0",
-    "@waffo/pancake-ts": "0.25.0",
-    "alipay-sdk": "4.14.0",
     "esbuild": "0.28.2",
     "pngjs": "^7.0.0",
-    "sql.js": "1.15.2",
-    "urllib": "4.9.1"
+    "sql.js": "1.15.2"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xiufengsun/TokenTracker.git"
+    "url": "git+https://github.com/aspi-rin/tokentracker-selfhost.git"
   },
-  "homepage": "https://www.tokentracker.cc",
+  "homepage": "https://tokens.aspi-rin.top",
   "bugs": {
-    "url": "https://github.com/xiufengsun/TokenTracker/issues"
+    "url": "https://github.com/aspi-rin/tokentracker-selfhost/issues"
   },
   "keywords": [
     "token",

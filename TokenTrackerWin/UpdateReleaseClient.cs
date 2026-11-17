@@ -13,11 +13,11 @@ namespace TokenTrackerWin;
 /// </summary>
 internal sealed class UpdateReleaseClient(HttpClient http, Func<DateTimeOffset>? utcNow = null)
 {
-    internal const string ReleasePageUrl = "https://github.com/xiufengsun/TokenTracker/releases/latest";
+    internal const string ReleasePageUrl = "https://github.com/aspi-rin/tokentracker-selfhost/releases/latest";
     internal const string SetupAssetName = "TokenTracker-Setup.exe";
-    private const string ApiUrl = "https://api.github.com/repos/xiufengsun/TokenTracker/releases/latest";
-    private const string TagPath = "/xiufengsun/TokenTracker/releases/tag/";
-    private const string DownloadBase = "https://github.com/xiufengsun/TokenTracker/releases/download/";
+    private const string ApiUrl = "https://api.github.com/repos/aspi-rin/tokentracker-selfhost/releases/latest";
+    private const string TagPath = "/aspi-rin/tokentracker-selfhost/releases/tag/";
+    private const string DownloadBase = "https://github.com/aspi-rin/tokentracker-selfhost/releases/download/";
     private readonly Func<DateTimeOffset> _utcNow = utcNow ?? (() => DateTimeOffset.UtcNow);
     private DateTimeOffset? _apiNotBefore;
 

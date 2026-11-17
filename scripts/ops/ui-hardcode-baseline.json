@@ -1,15 +1,40 @@
 {
-  "generatedAt": "2026-11-01T05:13:47.070Z",
+  "generatedAt": "2026-11-17T08:10:43.661Z",
   "root": "dashboard/src",
   "rules": {
     "colors": "hex/rgb(a) literals",
     "rawText": "JSX text nodes containing letters or digits"
   },
   "totals": {
-    "colors": 404,
-    "rawText": 166
+    "colors": 364,
+    "rawText": 164
   },
   "files": {
+    "dashboard/src/App.cloud.test.jsx": {
+      "colors": 0,
+      "rawText": 4,
+      "rawTextTokens": [
+        "Personal public usage",
+        "Sync settings",
+        "Usage limits",
+        "Widgets"
+      ]
+    },
+    "dashboard/src/App.jsx": {
+      "colors": 0,
+      "rawText": 9,
+      "rawTextTokens": [
+        "; else if (!local && !mock && insforge.loading) content =",
+        "; else if ([\"/skills\",\"/pet-settings\"].includes(path)) content =",
+        "; else if (guestHome && insforge.loading) content =",
+        "; else if (home) content =",
+        "; else if (path === \"/device\") content =",
+        "; else if (path === \"/login\") content =",
+        "; else if (path === \"/reset-password\") content =",
+        "; else if (profileId) content =",
+        "; else if (publicShare) content ="
+      ]
+    },
     "dashboard/src/components/InsforgeUserHeaderControls.jsx": {
       "colors": 0,
       "rawText": 3,
@@ -54,11 +79,32 @@
         "= 1)) && ("
       ]
     },
+    "dashboard/src/components/leaderboard/LeaderboardProfileModal.self-host.test.jsx": {
+      "colors": 0,
+      "rawText": 1,
+      "rawTextTokens": [
+        "Unsupported likes"
+      ]
+    },
+    "dashboard/src/components/settings/CloudSection.test.jsx": {
+      "colors": 0,
+      "rawText": 1,
+      "rawTextTokens": [
+        ");expect(screen.getByTestId('devices')).toBeInTheDocument();expect(screen.getByTestId('pricing')).toBeInTheDocument();expect(state.hook).not.toHaveBeenCalled(); v.rerender("
+      ]
+    },
     "dashboard/src/components/settings/MenuBarSection.jsx": {
       "colors": 0,
       "rawText": 1,
       "rawTextTokens": [
         "GitHub"
+      ]
+    },
+    "dashboard/src/components/settings/PricingSection.test.jsx": {
+      "colors": 0,
+      "rawText": 1,
+      "rawTextTokens": [
+        "'signed-test-token'; render("
       ]
     },
     "dashboard/src/hooks/use-trend-data.issue360.test.tsx": {
@@ -132,11 +178,17 @@
       ]
     },
     "dashboard/src/pages/LeaderboardProfilePage.jsx": {
-      "colors": 2,
-      "rawText": 2,
+      "colors": 0,
+      "rawText": 1,
       "rawTextTokens": [
-        ") : realSignedIn ? (",
-        "Token Tracker"
+        ": state.error || !state.data ?"
+      ]
+    },
+    "dashboard/src/pages/PersonalHomePage.jsx": {
+      "colors": 0,
+      "rawText": 1,
+      "rawTextTokens": [
+        "; return"
       ]
     },
     "dashboard/src/pages/SessionsPage.jsx": {
@@ -152,19 +204,6 @@
       "rawText": 1,
       "rawTextTokens": [
         ") : skill.directory && skill.directory !== title ? ("
-      ]
-    },
-    "dashboard/src/pages/SkillsPage.jsx": {
-      "colors": 4,
-      "rawText": 9,
-      "rawTextTokens": [
-        ") : null; const hintNode = !manageOpen && !isSkillsSh && !isPopular && repos.length",
-        ") : null; contentNode = (",
-        ") : source === SOURCE_POPULAR ? null : (",
-        "); const browseLoadingNode = (",
-        "0 ? (",
-        "0 || browseAnyFilter) ? (",
-        "t.id === id)?.label || id) .join(\", \") : copy(\"skills.action.choose_targets\"); return ("
       ]
     },
     "dashboard/src/pages/WidgetsPage.jsx": {
@@ -501,63 +540,6 @@
       "rawTextTokens": [
         "grouping"
       ]
-    },
-    "dashboard/src/ui/marketing/MarketingLanding.jsx": {
-      "colors": 0,
-      "rawText": 3,
-      "rawTextTokens": [
-        ") : ( // 未登录：Sign In 展示为主行动实色按钮，点击唤起 Modal",
-        ") : signedIn ? ( // 已登录：Open Dashboard 升级为主行动实色按钮",
-        "Token Tracker"
-      ]
-    },
-    "dashboard/src/ui/marketing/components/BorderGlow.jsx": {
-      "colors": 6,
-      "rawText": 0,
-      "rawTextTokens": []
-    },
-    "dashboard/src/ui/marketing/components/SpotlightCard.jsx": {
-      "colors": 2,
-      "rawText": 0,
-      "rawTextTokens": []
-    },
-    "dashboard/src/ui/marketing/v3/CapabilitiesSection.jsx": {
-      "colors": 1,
-      "rawText": 0,
-      "rawTextTokens": []
-    },
-    "dashboard/src/ui/marketing/v3/HeroSection.jsx": {
-      "colors": 2,
-      "rawText": 0,
-      "rawTextTokens": []
-    },
-    "dashboard/src/ui/marketing/v3/HowItWorksSection.jsx": {
-      "colors": 0,
-      "rawText": 5,
-      "rawTextTokens": [
-        "103,763",
-        "12,482",
-        "3,067",
-        "6,830,736,916",
-        "88,214"
-      ]
-    },
-    "dashboard/src/ui/marketing/v3/LeaderboardSection.jsx": {
-      "colors": 0,
-      "rawText": 1,
-      "rawTextTokens": [
-        "0 ? Math.max(6, Math.round((tokens / maxTokens) * 100)) : 0; return ("
-      ]
-    },
-    "dashboard/src/ui/marketing/v3/TokenGalaxy.jsx": {
-      "colors": 2,
-      "rawText": 0,
-      "rawTextTokens": []
-    },
-    "dashboard/src/ui/marketing/v3/palette.js": {
-      "colors": 21,
-      "rawText": 0,
-      "rawTextTokens": []
     },
     "dashboard/src/ui/share/HeatmapStrip.jsx": {
       "colors": 5,

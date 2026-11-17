@@ -20,7 +20,7 @@
  * private data is exposed.
  */
 import { createClient } from "npm:@insforge/sdk";
-import { readProBadges } from "./cloud/pro.ts";
+const readProBadges = async (..._args: unknown[]): Promise<Record<string,boolean>> => ({});
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -94,6 +94,9 @@ function unsafeDecodeJwtSub(token: string): string | null {
 export default async function (req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   const url = new URL(req.url);
+  const owner = Deno.env.get("TOKENTRACKER_OWNER_ID");
+  if (Deno.env.get("TOKENTRACKER_SELF_HOSTED") === "1" && !owner) return json({error:"Not found"},404);
+  const personal = (query: any) => owner ? query.eq("user_id",owner) : query;
   const period = url.searchParams.get("period") || "week";
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "20") || 20, 100);
   const offset = parseInt(url.searchParams.get("offset") || "0") || 0;
@@ -146,9 +149,8 @@ export default async function (req: Request): Promise<Response> {
     // period === "total": find the most recent (from_day, to_day) pair written
     // by the refresh job. Hardcoding (2024-01-01, today) used to 404 whenever
     // today's snapshot hadn't been generated yet, so the UI saw "no data".
-    const { data: latest } = await client.database
-      .from(Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED")==="1" ? "tokentracker_public_leaderboard" : "tokentracker_leaderboard_snapshots")
-      .select("from_day, to_day")
+    const { data: latest } = await personal(client.database.from(Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED")==="1" ? "tokentracker_public_leaderboard" : "tokentracker_leaderboard_snapshots")
+      .select("from_day, to_day"))
       .eq("period", "total")
       .order("to_day", { ascending: false })
       .limit(1)
@@ -162,9 +164,8 @@ export default async function (req: Request): Promise<Response> {
     data: entries,
     error,
     count,
-  } = await client.database
-    .from(Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED")==="1" ? "tokentracker_public_leaderboard" : "tokentracker_leaderboard_snapshots")
-    .select("*", { count: "exact" })
+  } = await personal(client.database.from(Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED")==="1" ? "tokentracker_public_leaderboard" : "tokentracker_leaderboard_snapshots")
+    .select("*", { count: "exact" }))
     .eq("period", period)
     .eq("from_day", from_day)
     .eq("to_day", to_day)
@@ -175,9 +176,8 @@ export default async function (req: Request): Promise<Response> {
   let me: unknown = null;
   if (requestedUserId) {
     try {
-      const { data: mr } = await client.database
-        .from(Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED")==="1" ? "tokentracker_public_leaderboard" : "tokentracker_leaderboard_snapshots")
-        .select("*")
+      const { data: mr } = await personal(client.database.from(Deno.env.get("TOKENTRACKER_PUBLIC_PROFILES_ENABLED")==="1" ? "tokentracker_public_leaderboard" : "tokentracker_leaderboard_snapshots")
+        .select("*"))
         .eq("period", period)
         .eq("from_day", from_day)
         .eq("to_day", to_day)

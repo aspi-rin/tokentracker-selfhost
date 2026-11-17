@@ -3,9 +3,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const vm = require("node:vm");
 const { test } = require("node:test");
-const { transformSync } = require("esbuild");
 const pricing = require("../src/lib/pricing");
 const { lookupPricing, normalizeCursorModel } = require("../src/lib/pricing/matcher");
 const curated = require("../src/lib/pricing/curated-overrides.json");
@@ -141,17 +139,10 @@ for (const slug of [
   "tokentracker-leaderboard-profile",
 ]) {
   test(`${slug}: Cursor new models are priced in the cloud`, () => {
-    const source = fs.readFileSync(
-      path.join(__dirname, "../dashboard/edge-patches", `${slug}.ts`),
-      "utf8",
-    );
-    const block = source.match(
-      /const MODEL_PRICING[\s\S]*?\nfunction getModelPricing\(model: string(?:, source = "")?\) \{[\s\S]*?\n\}/,
-    );
-    assert.ok(block, `${slug}: pricing block is present`);
-    const script = transformSync(block[0], { loader: "ts", format: "cjs" }).code;
-    const context = vm.createContext({});
-    vm.runInContext(script, context);
+    const source = fs.readFileSync(path.join(__dirname, "../dashboard/edge-patches", `${slug}.ts`), "utf8");
+    assert.match(source, /from "\.\/cloud\/pricing\.ts"/);
+    const context = require("./helpers/cloud-pricing.cjs")();
+    const compute = true;
 
     const cases = [
       ["gemini-4-argon-high", argon],
@@ -162,14 +153,14 @@ for (const slug of [
       ["composer-2.5", composer25],
     ];
     for (const [model, expected] of cases) {
-      const actual = context.getModelPricing(model);
+      const actual = context.getModelPricing(model, "cursor");
       for (const [key, value] of Object.entries(expected)) {
         assert.equal(actual[key], value, `${slug} ${model}: ${key}`);
       }
     }
     // Must not collapse Composer 2.5 Fast onto composer-1 ($1.25).
-    assert.equal(context.getModelPricing("composer-2.5-fast").input, 3);
+    assert.equal(context.getModelPricing("composer-2.5-fast", "cursor").input, 3);
     // Must not collapse Grok 4.7 Fast onto xAI grok-4 ($3).
-    assert.equal(context.getModelPricing("grok-4.7-high-fast").input, 4);
+    assert.equal(context.getModelPricing("grok-4.7-high-fast", "cursor").input, 4);
   });
 }

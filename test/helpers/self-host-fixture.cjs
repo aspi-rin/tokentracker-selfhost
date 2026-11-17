@@ -30,8 +30,7 @@ async function fixture({publicProfiles=false}={}) {
   for(const {slug} of manifest.functions) {
     const filename=path.join(directory,slug+".js");
     const output=await build({entryPoints:[filename],bundle:true,write:false,format:"cjs",platform:"node",target:"node20",logLevel:"silent",
-      alias:{"npm:@insforge/sdk":sdk,"npm:@insforge/sdk@1.4.5":sdk,
-        "npm:@waffo/pancake-ts@0.25.0":require.resolve("@waffo/pancake-ts"),"npm:alipay-sdk@4.14.0":require.resolve("alipay-sdk")},
+      alias:{"npm:@insforge/sdk":sdk,"npm:@insforge/sdk@1.4.5":sdk},
       plugins:[{name:"locked-self-host-fixture-imports",setup(builder){
         builder.onResolve({filter:/^npm:/},args=>{
           const match=args.path.match(/^npm:((?:@[^/]+\/)?[^@/]+)@([^/]+)(\/.*)?$/);
@@ -110,7 +109,10 @@ async function fixture({publicProfiles=false}={}) {
   globalThis.Deno={env:{get:key=>env[key]}};
   globalThis.fetch=async(input,init)=>{const url=new URL(typeof input==="string"?input:input.url||input.href);if(url.origin!==base)throw Error("Self-host fixture attempted another backend");return originalFetch(input,init);};
   return {db,env,manifest,base,token,
-    user:async()=>{const id=randomUUID();await db.query("INSERT INTO auth.users VALUES($1)",[id]);return id;},
+    user:async()=>{const id=randomUUID();await db.query("INSERT INTO auth.users VALUES($1)",[id]);
+      const current=env.TOKENTRACKER_OWNER_ID && (await db.query("SELECT id FROM auth.users WHERE id=$1",[env.TOKENTRACKER_OWNER_ID])).rows.length;
+      if(!current)env.TOKENTRACKER_OWNER_ID=id;
+      return id;},
     request:async(slug,value,owner)=>{const response=await originalFetch(base+"/functions/"+slug,{method:value===undefined?"GET":"POST",
       headers:{...(owner?{Authorization:"Bearer "+(/^[0-9a-f-]{36}$/i.test(owner)?token(owner):owner)}:{}),"Content-Type":"application/json"},
       ...(value===undefined?{}:{body:JSON.stringify(value)})});return {response,data:await response.json()};},
