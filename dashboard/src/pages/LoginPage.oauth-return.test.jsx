@@ -32,8 +32,8 @@ it.each([
   ["/billing/checkout?sku=cloud_usd_yearly_fixed", "cloud.login.purchase_context"],
 ])("keeps the Cloud task visible when signing in for %s", async (next, subtitleKey) => {
   await startOAuth(next);
-  expect(screen.getByText(copy(subtitleKey))).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Back to plans" })).toHaveAttribute("href", "/cloud");
+  expect(screen.getByText(copy("login.subtitle"))).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/");
 });
 afterEach(() => { cleanup(); window.history.replaceState(null, "", "/"); });
 

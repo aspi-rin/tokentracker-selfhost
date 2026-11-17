@@ -503,33 +503,7 @@ final class NativeBridge {
     }
 
     private func applyPetSetting(key: String, value: Any?) {
-        guard let controller = desktopPetController else { return }
-        // No trailing pushPetSettings() here: every mutation path below already pushes
-        // (show/hide/setSize/setCharacter), and their same-value guards only skip the
-        // echo when the dashboard's optimistic state already matches.
-        switch key {
-        case "visible":
-            if let visible = value as? Bool {
-                visible ? controller.show() : controller.hide()
-            }
-        case "character":
-            if let raw = value as? String, let character = PetCharacter(rawValue: raw) {
-                controller.setCharacter(character)
-            }
-        case "botColor":
-            if let raw = value as? String {
-                // Unlike the paths above, the store has no dashboard-visible side effect
-                // to echo, so push explicitly after it settles.
-                PetCharacterStore.shared.setBotColor(raw)
-                pushPetSettings()
-            }
-        case "size":
-            if let raw = value as? String, let size = PetSizePreset(rawValue: raw) {
-                controller.setSize(size)
-            }
-        default:
-            break
-        }
+        // Legacy dashboard messages cannot open or configure a desktop companion.
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {

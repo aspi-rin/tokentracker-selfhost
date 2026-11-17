@@ -73,7 +73,7 @@ export function LoginCard({
     resetPassword,
   } = useInsforgeAuth();
 
-  const [mode, setMode] = useState(initialMode);
+  const [mode, setMode] = useState(initialMode === "signup" ? "signin" : initialMode);
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -557,40 +557,6 @@ export function LoginCard({
                   </span>
                 </div>
               </div> : null}
-
-              {/* Sign in / Sign up toggle */}
-              <div className="flex rounded-lg border border-oai-gray-200 dark:border-oai-gray-800 p-0.5 bg-oai-gray-50 dark:bg-oai-gray-900/50 mb-4">
-                <button
-                  type="button"
-                  className={cn(
-                    "flex-1 py-1.5 text-xs font-medium rounded-md transition-colors",
-                    mode === "signin"
-                      ? "bg-white dark:bg-oai-gray-800 text-oai-black dark:text-white shadow-sm"
-                      : "text-oai-gray-500 hover:text-oai-gray-700 dark:hover:text-oai-gray-300",
-                  )}
-                  onClick={() => {
-                    setMode("signin");
-                    setError(null);
-                  }}
-                >
-                  {copy("login.tab.sign_in")}
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    "flex-1 py-1.5 text-xs font-medium rounded-md transition-colors",
-                    mode === "signup"
-                      ? "bg-white dark:bg-oai-gray-800 text-oai-black dark:text-white shadow-sm"
-                      : "text-oai-gray-500 hover:text-oai-gray-700 dark:hover:text-oai-gray-300",
-                  )}
-                  onClick={() => {
-                    setMode("signup");
-                    setError(null);
-                  }}
-                >
-                  {copy("login.tab.sign_up")}
-                </button>
-              </div>
 
               {/* Email form */}
               <form onSubmit={handleEmailAuth} className="space-y-3">

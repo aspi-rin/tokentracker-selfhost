@@ -15,18 +15,11 @@ enum MenuBarIconStyle: String, CaseIterable {
     /// Reads the persisted style. Migrates the legacy animation toggle:
     /// users who had explicitly disabled animation keep a static icon.
     static func current(defaults: UserDefaults = .standard) -> MenuBarIconStyle {
-        if let raw = defaults.string(forKey: defaultsKey),
-           let style = MenuBarIconStyle(rawValue: raw) {
-            return style
-        }
-        if defaults.object(forKey: legacyAnimationEnabledKey) as? Bool == false {
-            return .static
-        }
-        return .clawd
+        return .bot
     }
 
     static func setCurrent(_ style: MenuBarIconStyle, defaults: UserDefaults = .standard) {
-        defaults.set(style.rawValue, forKey: defaultsKey)
+        defaults.set(MenuBarIconStyle.bot.rawValue, forKey: defaultsKey)
     }
 }
 

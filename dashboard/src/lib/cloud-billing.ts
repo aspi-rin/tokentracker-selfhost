@@ -113,11 +113,13 @@ export async function cloudBillingRequest<T>(
     body,
     params,
     signal,
+    functionName = "tokentracker-billing",
   }: {
     auth?: AuthTokenProvider;
     body?: Record<string, unknown>;
     params?: Record<string, string>;
     signal?: AbortSignal;
+    functionName?: string;
   } = {},
 ): Promise<T> {
   const requestInstance = getInsforgeRemoteUrl();
@@ -135,7 +137,7 @@ export async function cloudBillingRequest<T>(
     headers.Authorization = `Bearer ${token}`;
   }
   const url = new URL(
-    functionUrlFor(requestInstance, "tokentracker-billing"),
+    functionUrlFor(requestInstance, functionName),
   );
   url.searchParams.set("action", action);
   for (const [key, value] of Object.entries(params || {}))
@@ -152,7 +154,7 @@ export async function cloudBillingRequest<T>(
     });
   } catch (error) {
     assertInstance();
-    if (action === "catalog") publishCloudPromptBilling(action, null, null);
+    if (functionName === "tokentracker-billing" && action === "catalog") publishCloudPromptBilling(action, null, null);
     if (signal?.aborted) throw error;
     throw new CloudBillingError("billing_network_error");
   }
@@ -165,17 +167,17 @@ export async function cloudBillingRequest<T>(
     result?.ok === false ||
     (typeof result?.error === "string" && response.status !== 202)
   ) {
-    if (action === "catalog") publishCloudPromptBilling(action, null, null);
+    if (functionName === "tokentracker-billing" && action === "catalog") publishCloudPromptBilling(action, null, null);
     throw new CloudBillingError(
       result?.code || result?.error || "billing_operation_failed",
       response.status,
     );
   }
   if (!result || typeof result !== "object") {
-    if (action === "catalog") publishCloudPromptBilling(action, null, null);
+    if (functionName === "tokentracker-billing" && action === "catalog") publishCloudPromptBilling(action, null, null);
     throw new CloudBillingError("billing_operation_failed", response.status);
   }
-  publishCloudPromptBilling(action, result, cloudPromptOwnerFromToken(headers.Authorization?.slice(7)));
+  if (functionName === "tokentracker-billing") publishCloudPromptBilling(action, result, cloudPromptOwnerFromToken(headers.Authorization?.slice(7)));
   assertInstance();
   return result as T;
 }

@@ -1,0 +1,20 @@
+import React from 'react';
+import {render,screen,fireEvent,act,cleanup} from '@testing-library/react';
+import {beforeEach,afterEach,it,expect,vi} from 'vitest';
+import {SyncDevices} from './SyncDevices.jsx';
+import {setCopyLocale} from '../../lib/copy';
+const state=vi.hoisted(()=>({request:vi.fn(),clear:vi.fn()}));
+vi.mock('../../lib/cloud-billing',()=>({cloudBillingRequest:state.request}));
+vi.mock('../../lib/cloud-sync-prefs',()=>({clearCloudDeviceSession:state.clear,isLocalDashboardHost:()=>false}));
+beforeEach(()=>{setCopyLocale('en');state.request.mockReset();state.clear.mockReset();});afterEach(cleanup);
+it('does not apply an old owner pause result to the next owner',async()=>{
+ let finish;const pending=new Promise(r=>{finish=r});
+ const a=async()=> 'owner-a',b=async()=> 'owner-b';
+ state.request.mockImplementation((action,opts)=>action==='remove-device'?pending:Promise.resolve({machines:[{machine_id:opts.auth===a?'machine-a':'machine-b',name:opts.auth===a?'Laptop A':'Laptop B',status:'active',is_current:true}],machine_count:1}));
+ const view=render(<SyncDevices auth={{user:{id:'a'},getAccessToken:a}} selfHosted/>);await screen.findByText('Laptop A');
+ fireEvent.click(screen.getByRole('button',{name:'Pause',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Pause Cloud sync',exact:true}));
+ view.rerender(<SyncDevices auth={{user:{id:'b'},getAccessToken:b}} selfHosted/>);await screen.findByText('Laptop B');
+ await act(async()=>{finish({ok:true});await pending;});
+ expect(state.clear).not.toHaveBeenCalled();expect(screen.getByText('Laptop B')).toBeInTheDocument();expect(screen.queryByText('Laptop A')).not.toBeInTheDocument();
+ expect(state.request).toHaveBeenCalledWith('remove-device',expect.objectContaining({functionName:'tokentracker-devices',body:{machine_id:'machine-a'}}));
+});

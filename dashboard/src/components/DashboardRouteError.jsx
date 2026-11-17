@@ -1,25 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { isRouteErrorResponse, useRouteError } from "react-router-dom";
 import { copy } from "../lib/copy";
-import { captureDashboardException } from "../lib/sentry.js";
 
-/**
- * React Router catch-all error UI that also reports to Sentry when enabled.
- * createBrowserRouter's default boundary swallows render errors before the
- * global handlers, so we capture here explicitly.
- */
 export function DashboardRouteError() {
   const error = useRouteError();
-
-  useEffect(() => {
-    if (!error) return;
-    const err = isRouteErrorResponse(error)
-      ? new Error(`Route error ${error.status}: ${error.statusText || "unknown"}`)
-      : error instanceof Error
-        ? error
-        : new Error(typeof error === "string" ? error : "Unknown route error");
-    void captureDashboardException(err, { tags: { surface: "react-router" } });
-  }, [error]);
 
   const message = isRouteErrorResponse(error)
     ? `${error.status} ${error.statusText || ""}`.trim()

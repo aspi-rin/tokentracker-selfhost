@@ -85,11 +85,10 @@ jobs:
 
       - name: Build dashboard
         env:
-          VITE_INSFORGE_BASE_URL: https://srctyff5.us-east.insforge.app
-          VITE_INSFORGE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-          # Include the floating-pet entry (pet.html). Off by default so the macOS +
-          # web builds stay byte-identical; only the Windows build opts in.
+          VITE_TOKENTRACKER_PUBLIC_PROFILES: "1"
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
+          # Include the quota widget entry for the Windows shell.
           TOKENTRACKER_BUILD_PET: "1"
         run: npm run dashboard:build
 
@@ -106,6 +105,12 @@ jobs:
         env:
           NODE_CACHE_DIR: ${{ runner.temp }}\ttnode-22.22.2
         run: powershell -ExecutionPolicy Bypass -File TokenTrackerWin/scripts/bundle-node.ps1
+
+      - name: Configure public instance defaults
+        env:
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
+        run: node scripts/configure-instance-bundle.cjs TokenTrackerWin/EmbeddedServer/tokentracker
 
       # 3. Publish a self-contained win-x64 build (bundles the .NET 8 runtime, so
       # end users do NOT need to install the .NET Desktop Runtime first).

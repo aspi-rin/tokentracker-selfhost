@@ -130,8 +130,8 @@ export function SettingsPage() {
     },
     {
       id: SETTINGS_SECTION_IDS.CLOUD,
-      label: copy("settings.section.cloud"),
-      description: copy("settings.section.cloud.description"),
+      label: copy("personal.sync.title"),
+      description: copy("personal.sync.description"),
       group: SETTINGS_GROUP_IDS.PERSONAL,
       Icon: Cloud,
       content: <CloudSection settings={accountSettings} active={activeSection === SETTINGS_SECTION_IDS.CLOUD} />,

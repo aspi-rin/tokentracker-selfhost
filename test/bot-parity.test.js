@@ -90,30 +90,9 @@ test("visual scale agrees between web and macOS", () => {
   assert.equal(swiftVector[1], bot[1], "bot visual scale drifted between web and macOS");
 });
 
-test("the menu bar icon styles offered by the dashboard all exist in Swift", () => {
-  const web = read(WIDGETS_PAGE).match(/const iconStyles = (\[[^\]]+\])/);
-  assert.ok(web, "iconStyles must remain a literal array");
-  const offered = JSON.parse(web[1].replace(/'/g, '"'));
-  assert.ok(offered.includes("bot"), "the bot icon style must be selectable");
-
-  const swift = read(ICON_STYLE);
-  // Scoped to the enum body: MenuBarRunnerMotion further down has cases at the
-  // same indentation (idle / syncing / ...) that are not icon styles.
-  const enumBody = swift.slice(
-    swift.indexOf("enum MenuBarIconStyle"),
-    swift.indexOf("static let defaultsKey"),
-  );
-  assert.ok(enumBody.length > 0, "MenuBarIconStyle must keep its cases above defaultsKey");
-  const cases = [...enumBody.matchAll(/^\s+case `?([a-z]+)`?$/gm)].map((entry) => entry[1]);
-  assert.deepEqual([...offered].sort(), [...cases].sort());
-
-  // Every style must have a pacing entry, or the animator falls back silently.
-  const pace = swift.slice(swift.indexOf("static func frameInterval"));
-  for (const style of offered) {
-    // Styles may share a case arm, e.g. `case .clawd, .static:`.
-    assert.match(pace, new RegExp(`case [^\\n]*\\.\`?${style}\`?[,:]`),
-      `${style} has no frameInterval entry`);
-  }
+test("the personal dashboard leaves Bot appearance under native control", () => {
+  const dashboard=fs.readFileSync(path.join(repoRoot, "dashboard/src/pages/WidgetsPage.jsx"),"utf8");
+  assert.ok(!dashboard.includes('setSetting("menuBarIconStyle"'));
 });
 
 test("the colour palette offered to users is the one macOS ships", () => {

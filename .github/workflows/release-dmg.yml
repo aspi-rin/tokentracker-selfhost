@@ -199,9 +199,10 @@ jobs:
       # `dashboard/.env.local` is gitignored so CI cannot read it — inject here.
       - name: Build dashboard
         env:
-          VITE_INSFORGE_BASE_URL: https://srctyff5.us-east.insforge.app
-          VITE_INSFORGE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_TOKENTRACKER_PUBLIC_PROFILES: "1"
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
+          TOKENTRACKER_BUILD_PET: "1"
         run: npm run dashboard:build
 
       # 2. Bundle EmbeddedServer (Node.js + tokentracker source)
@@ -216,6 +217,12 @@ jobs:
         env:
           NODE_CACHE_DIR: /tmp/node-cache
         run: bash TokenTrackerBar/scripts/bundle-node.sh
+
+      - name: Configure public instance defaults
+        env:
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
+        run: node scripts/configure-instance-bundle.cjs TokenTrackerBar/EmbeddedServer/tokentracker
 
       # 3. Generate Xcode project
       - name: Cache Homebrew bottles
@@ -459,13 +466,13 @@ jobs:
 
       # Same public client-side values as the macOS job: absent at build time
       # Vite inlines empty strings, breaking the leaderboard and cloud OAuth.
-      # TOKENTRACKER_BUILD_PET adds pet.html, the floating pet's page, as on Windows.
+      # The legacy native-build flag includes the quota widget entry.
       - name: Build dashboard
         env:
+          VITE_TOKENTRACKER_PUBLIC_PROFILES: "1"
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
           TOKENTRACKER_BUILD_PET: "1"
-          VITE_INSFORGE_BASE_URL: https://srctyff5.us-east.insforge.app
-          VITE_INSFORGE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
         run: npm run dashboard:build
 
       - name: Install Linux client dependencies
@@ -477,6 +484,12 @@ jobs:
       # tauri-build hard-fails on a missing resource path.
       - name: Bundle EmbeddedServer
         run: npm --prefix TokenTrackerLinux run bundle:node
+
+      - name: Configure public instance defaults
+        env:
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
+        run: node scripts/configure-instance-bundle.cjs TokenTrackerLinux/EmbeddedServer/tokentracker
 
       - name: Build Linux packages
         run: npm --prefix TokenTrackerLinux run build
@@ -522,7 +535,7 @@ jobs:
               "tokentracker/bin/tracker.js" \
               "tokentracker/package.json" \
               "tokentracker/dashboard/dist/index.html" \
-              "tokentracker/dashboard/dist/pet.html"
+              "tokentracker/dashboard/dist/quota.html"
             do
               if [ ! -e "$(dirname "$node_bin")/$required" ]; then
                 echo "::error::$label is missing EmbeddedServer/$required"

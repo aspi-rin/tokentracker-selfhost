@@ -47,23 +47,16 @@ vi.mock("./ui/components/Sidebar.jsx", () => ({
 vi.mock("./ui/dashboard/components/CommandPalette.jsx", () => ({
   CommandPalette: () => null,
 }));
-vi.mock("./pages/CloudPage.jsx", () => ({
-  CloudPage: () => <h1>{labels.cloud}</h1>,
-}));
-vi.mock("./pages/CloudCheckoutPage.jsx", () => ({
-  CloudCheckoutPage: () => <h1>{labels.checkout}</h1>,
-}));
-vi.mock("./pages/SelfHostPage.jsx", () => ({
-  SelfHostPage: () => <h1>{labels.selfHost}</h1>,
-}));
+vi.mock("./pages/PersonalHomePage.jsx", () => ({ default: () => <h1>Personal public usage</h1> }));
+vi.mock("./pages/SettingsPage.jsx", () => ({ SettingsPage: () => <h1>Sync settings</h1> }));
+vi.mock("./pages/LimitsPage.jsx", () => ({ LimitsPage: () => <h1>Usage limits</h1> }));
+vi.mock("./pages/WidgetsPage.jsx", () => ({ WidgetsPage: () => <h1>Widgets</h1> }));
 vi.mock("./pages/DashboardPage.jsx", () => ({
   DashboardPage: () => <h1>{labels.dashboard}</h1>,
 }));
 vi.mock("./pages/LoginPage.jsx", () => ({
   LoginPage: () => <h1>{useLocation().pathname + useLocation().search}</h1>,
 }));
-vi.mock("@vercel/analytics/react", () => ({ Analytics: () => null }));
-vi.mock("@vercel/speed-insights/react", () => ({ SpeedInsights: () => null }));
 
 beforeEach(() => {
   auth.signedIn = false;
@@ -81,36 +74,17 @@ describe("Cloud public routing", () => {
     render(<MemoryRouter initialEntries={["/dashboard?insforge_code=fixture-only-code&state=private-state&from=2026-10-01"]}><App /></MemoryRouter>);
     expect(await screen.findByRole("heading", { name: "/login?next=%2Fdashboard%3Ffrom%3D2026-10-01" })).toBeInTheDocument();
   });
-  it.each([
-    ["/cloud", labels.cloud],
-    ["/billing/checkout?sku=cloud_usd_yearly", labels.checkout],
-    ["/self-host", labels.selfHost],
-  ])(
-    "keeps %s reachable for signed-out visitors on the public host",
-    async (path, title) => {
-      render(
-        <MemoryRouter initialEntries={[path]}>
-          <App />
-        </MemoryRouter>,
-      );
-      expect(
-        await screen.findByRole("heading", { name: title }),
-      ).toBeInTheDocument();
-      expect(screen.getByLabelText(labels.shell)).toBeInTheDocument();
-    },
-  );
-  it.each(["/", "/dashboard"])("restores purchase intent after auth returns to %s", async (callbackPath) => {
-    auth.signedIn = true;
-    auth.user = { id: "account-1" };
-    sessionStorage.setItem("tt.cloud.return", "/billing/checkout?intent=trial");
-    render(
-      <MemoryRouter initialEntries={[callbackPath]}>
-        <App />
-      </MemoryRouter>,
-    );
-    expect(
-      await screen.findByRole("heading", { name: labels.checkout }),
-    ).toBeInTheDocument();
-    expect(sessionStorage.getItem("tt.cloud.return")).toBeNull();
+  it.each(["/cloud", "/billing/checkout", "/self-host", "/devices"])("protects legacy sync route %s", async path => {
+    render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
+    expect(await screen.findByRole("heading", {name:"/login?next="+encodeURIComponent(path)})).toBeInTheDocument();
+  });
+  it.each(["/", "/public", "/leaderboard"])("shows the personal public home at %s", async path => {
+    render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
+    expect(await screen.findByRole("heading", {name:"Personal public usage"})).toBeInTheDocument();
+  });
+  it.each([["/cloud","Sync settings"],["/billing/checkout","Sync settings"],["/skills","Account dashboard"],["/pet-settings","Account dashboard"],["/limits","Usage limits"],["/widgets","Widgets"]])("signed-in route %s keeps the intended tool", async (path,label) => {
+    auth.signedIn=true;auth.user={id:"owner"};
+    render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
+    expect(await screen.findByRole("heading", {name:label})).toBeInTheDocument();
   });
 });

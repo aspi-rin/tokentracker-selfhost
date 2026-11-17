@@ -166,7 +166,7 @@ test("installer refuses incomplete platform roles, existing unregistered applica
 });
 
 test("installation and function manifests exclude production data repairs and merchant secrets",async()=>{
-  assert.equal(instance.manifest.functions.length,14);
+  assert.equal(instance.manifest.functions.length,16);
   assert.ok(instance.manifest.functions.some(f=>f.slug==="tokentracker-device-flow-authorize"));
   assert.ok(!instance.manifest.functions.some(f=>/webhook|leaderboard|public-visibility/.test(f.slug)));
   assert.ok(!instance.manifest.serverSecrets.some(name=>/WAFFO|PADDLE|ALIPAY|WECHAT/.test(name)));
@@ -244,19 +244,13 @@ test("the CommonJS self-host wrapper uses reserved internal routing and leaves t
   }
 });
 
-test("self-host billing preserves the installed payment dependency locks and the official CommonJS export",async()=>{
-  const directory=await fs.mkdtemp(path.join(os.tmpdir(),"self-host-runtime-contract-"));
+test("personal billing builds deterministically without payment runtime dependencies",async()=>{
+  const directory=await fs.mkdtemp(path.join(os.tmpdir(),"personal-runtime-contract-"));
   try {
     await buildFunctions(directory);
     const code=await fs.readFile(path.join(directory,"tokentracker-billing.js"),"utf8");
     assert.ok(code.startsWith("module.exports = async function(req)"));
-    assert.ok(!code.includes('await import("npm:alipay-sdk@'));
-    assert.ok(!code.includes('await import("npm:urllib@'));
-    const lock=JSON.parse(await fs.readFile(path.join(__dirname,"../package-lock.json"),"utf8"));
-    const undici=lock.packages["node_modules/urllib/node_modules/undici"].version;
-    assert.ok(code.includes('await import("npm:undici@'+undici+'")'));
-    assert.ok(code.includes("File: mod.File || globalThis.File"));
-    assert.ok(code.includes('const Buffer = __selfHostModules["node:buffer"].Buffer'));
+    assert.doesNotMatch(code,/npm:@waffo|alipay-sdk|npm:urllib|npm:undici|node:buffer/);
     await buildFunctions(directory);
     assert.equal(await fs.readFile(path.join(directory,"tokentracker-billing.js"),"utf8"),code);
   } finally {await fs.rm(directory,{recursive:true,force:true});}

@@ -8,9 +8,9 @@ namespace TokenTrackerWin.Tests;
 
 public sealed class UpdateReleaseClientTests
 {
-    private const string ApiUrl = "https://api.github.com/repos/xiufengsun/TokenTracker/releases/latest";
-    private const string TagUrl = "https://github.com/xiufengsun/TokenTracker/releases/tag/v1.3.9";
-    private const string AssetBase = "https://github.com/xiufengsun/TokenTracker/releases/download/v1.3.9/";
+    private const string ApiUrl = "https://api.github.com/repos/aspi-rin/tokentracker-selfhost/releases/latest";
+    private const string TagUrl = "https://github.com/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9";
+    private const string AssetBase = "https://github.com/aspi-rin/tokentracker-selfhost/releases/download/v1.3.9/";
     private static readonly DateTimeOffset Now = new(2026, 10, 12, 8, 0, 0, TimeSpan.Zero);
 
     [Fact]
@@ -179,12 +179,12 @@ public sealed class UpdateReleaseClientTests
     }
 
     [Theory]
-    [InlineData("https://example.test/xiufengsun/TokenTracker/releases/tag/v1.3.9")]
-    [InlineData("http://github.com/xiufengsun/TokenTracker/releases/tag/v1.3.9")]
+    [InlineData("https://example.test/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9")]
+    [InlineData("http://github.com/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9")]
     [InlineData("https://github.com/another/repo/releases/tag/v1.3.9")]
-    [InlineData("https://github.com/xiufengsun/TokenTracker/releases/latest")]
-    [InlineData("https://github.com/xiufengsun/TokenTracker/releases/tag/v1.3.9-rc.1")]
-    [InlineData("https://github.com/xiufengsun/TokenTracker/releases/tag/v1.3.9/extra")]
+    [InlineData("https://github.com/aspi-rin/tokentracker-selfhost/releases/latest")]
+    [InlineData("https://github.com/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9-rc.1")]
+    [InlineData("https://github.com/aspi-rin/tokentracker-selfhost/releases/tag/v1.3.9/extra")]
     public async Task FallbackRejectsUnexpectedRedirectsAndInvalidTags(string redirect)
     {
         var calls = 0;
@@ -270,7 +270,7 @@ public sealed class UpdateReleaseClientTests
     {
         using var http = Http(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(new {
             tag_name = "v0.0.0",
-            assets = new[] { new { name = "TokenTracker-Setup.exe", browser_download_url = "https://github.com/xiufengsun/TokenTracker/releases/download/v0.0.0/TokenTracker-Setup.exe", size = 900 } },
+            assets = new[] { new { name = "TokenTracker-Setup.exe", browser_download_url = "https://github.com/aspi-rin/tokentracker-selfhost/releases/download/v0.0.0/TokenTracker-Setup.exe", size = 900 } },
         })) });
         var checker = new UpdateChecker(http);
         Assert.Equal(UpdateChecker.CheckOutcome.UpToDate, await checker.CheckAsync(silent: false));

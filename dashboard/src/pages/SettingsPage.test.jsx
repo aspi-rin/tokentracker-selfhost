@@ -24,6 +24,7 @@ const profileSettingsMock = vi.hoisted(() => ({
 }));
 
 const LABELS = {
+  "personal.sync.title": "Sync & devices",
   "settings.page.title": "Settings",
   "settings.page.subtitle": "Manage your preferences",
   "settings.nav.group.personal": "Personal",
@@ -217,7 +218,7 @@ describe("SettingsPage category navigation", () => {
 
   it("opens the dedicated Personal Cloud panel from its deep link with one shared account state", async () => {
     const { container } = renderSettings("/settings?section=cloud&source=trial");
-    const cloudButton = screen.getByRole("button", { name: "Cloud", exact: true });
+    const cloudButton = screen.getByRole("button", { name: "Sync & devices", exact: true });
     const accountButton = screen.getByRole("button", { name: "Account", exact: true });
     const cloudPanel = container.querySelector('[data-settings-panel="cloud"]');
     const accountPanel = container.querySelector('[data-settings-panel="account"]');

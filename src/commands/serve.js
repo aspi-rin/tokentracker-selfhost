@@ -97,7 +97,7 @@ async function cmdServe(argv) {
   //     disk cache or upstream data. Awaiting it here would block startup
   //     for the full 10s fetch timeout when offline / behind a firewall.
   const { cacheDir } = await resolveTrackerPaths();
-  ensurePricingLoaded({ cachePath: path.join(cacheDir, "pricing.json") }).catch(
+  ensurePricingLoaded({ cachePath: path.join(cacheDir, "pricing.json"), configPath: path.join(trackerDir, "config.json") }).catch(
     (e) => process.stdout.write(`Pricing refresh warning: ${e?.message || e}\n`),
   );
 
@@ -271,19 +271,6 @@ async function cmdServe(argv) {
     onError: (e) =>
       process.stdout.write(`Background local sync warning: ${e?.message || e}\n`),
   });
-
-  // Anonymous daily heartbeat (see src/lib/telemetry.js for the privacy
-  // contract). Fire-and-forget at startup, then re-checked every 6 hours so
-  // long-lived embedded-app servers still count on later days; the shared
-  // 24h throttle state guarantees at most one send per day.
-  {
-    const { maybeSendHeartbeat } = require("../lib/telemetry");
-    const { trackerDir: heartbeatTrackerDir } = await resolveTrackerPaths();
-    const sendHeartbeat = () =>
-      maybeSendHeartbeat({ trackerDir: heartbeatTrackerDir }).catch(() => {});
-    sendHeartbeat();
-    setInterval(sendHeartbeat, 6 * 60 * 60 * 1000).unref();
-  }
 
   server.on("error", (e) => {
     process.stderr.write(`Server error: ${e.message}\n`);

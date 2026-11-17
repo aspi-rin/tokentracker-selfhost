@@ -17,7 +17,16 @@ const DEFAULT_HTTP_TIMEOUT_MS = 20_000;
 const DEFAULT_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY";
 
-function resolveRuntimeConfig({ cli = {}, config = {}, env = process.env, defaults = {} } = {}) {
+// Installers may carry public instance defaults. Persisted user choices keep
+// their existing priority; credentials are always resolved for the selected host.
+function bundledInstanceDefaults() {
+  const fs = require("node:fs");
+  const filename = require("node:path").resolve(__dirname, "../../instance-defaults.json");
+  try { return JSON.parse(fs.readFileSync(filename, "utf8")); }
+  catch (error) { if (error.code === "ENOENT") return {}; throw error; }
+}
+
+function resolveRuntimeConfig({ cli = {}, config = {}, env = process.env, defaults = bundledInstanceDefaults() } = {}) {
   // Older Windows test runs could leak their fixture HOME and persist
   // https://example.invalid into the user's real config.json. The test
   // isolation bug is fixed, but existing installs must recover instead of

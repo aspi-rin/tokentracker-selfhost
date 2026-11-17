@@ -329,7 +329,7 @@ function MenuBarPreview({ slotConfigs, showStats }) {
             menu-bar glyph rather than a hero illustration. */}
         <div className="flex items-center pl-2 pr-1 py-2.5">
           <img
-            src="/clawd/mini/idle-tight.svg"
+            src="/bot-menu.svg"
             alt=""
             aria-hidden="true"
             className="block shrink-0"
@@ -470,10 +470,6 @@ function MenuBarDisplayCard() {
     return { slot, currentValue, options, item };
   });
 
-  const iconStyles = ["clawd", "bot", "cat", "pet", "static"];
-  const iconStyle = iconStyles.includes(settings?.menuBarIconStyle)
-    ? settings.menuBarIconStyle
-    : "clawd";
   const toastOnReset = settings?.toastOnReset !== false;
   const confettiOnReset = settings?.confettiOnReset !== false;
 
@@ -501,20 +497,6 @@ function MenuBarDisplayCard() {
           checked={showStats}
           disabled={!available}
           onChange={() => setSetting("showStats", !showStats)}
-        />
-        <MenuBarSelectRow
-          label={copy("settings.menubar.iconStyle")}
-          hint={copy("settings.menubar.iconStyleHint")}
-          value={iconStyle}
-          disabled={!available}
-          options={[
-            { value: "clawd", label: copy("settings.menubar.iconStyle.clawd") },
-            { value: "bot", label: copy("settings.menubar.iconStyle.bot") },
-            { value: "cat", label: copy("settings.menubar.iconStyle.cat") },
-            { value: "pet", label: copy("settings.menubar.iconStyle.pet") },
-            { value: "static", label: copy("settings.menubar.iconStyle.static") },
-          ]}
-          onChange={(next) => setSetting("menuBarIconStyle", next)}
         />
         <MenuBarToggleRow
           label={copy("settings.menubar.toastOnReset")}
@@ -580,20 +562,6 @@ function HeaderCta() {
         {copy("widgets.cta.open_gallery")}
         <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
       </button>
-    );
-  }
-
-  if (platform === "mac-web") {
-    return (
-      <a
-        href="https://github.com/xiufengsun/TokenTracker/releases/latest"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex h-10 items-center gap-2 rounded-lg bg-oai-black px-4 text-sm font-medium text-white no-underline transition-colors hover:bg-oai-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand-500 focus-visible:ring-offset-2 dark:bg-white dark:text-oai-black dark:hover:bg-oai-gray-200"
-      >
-        <Download className="h-4 w-4" aria-hidden="true" />
-        {copy("widgets.cta.download")}
-      </a>
     );
   }
 

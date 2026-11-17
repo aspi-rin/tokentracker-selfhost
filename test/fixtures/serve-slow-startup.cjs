@@ -2,10 +2,8 @@
 const init = require("../../src/commands/init");
 const sync = require("../../src/commands/sync");
 const pricing = require("../../src/lib/pricing");
-const telemetry = require("../../src/lib/telemetry");
 const star = require("../../src/lib/star-cta");
 pricing.ensurePricingLoaded = async () => {};
-telemetry.maybeSendHeartbeat = async () => {};
 star.maybeShowStarCta = async () => { process.send({ phase: "complete" }); };
 init.installLocalTrackerApp = async () => {
   process.send({ phase: "install" });

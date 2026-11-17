@@ -3,9 +3,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const vm = require("node:vm");
 const { test } = require("node:test");
-const { transformSync } = require("esbuild");
 const pricing = require("../src/lib/pricing");
 const { lookupPricing } = require("../src/lib/pricing/matcher");
 const curated = require("../src/lib/pricing/curated-overrides.json");
@@ -72,13 +70,9 @@ for (const slug of [
 ]) {
   test(`${slug}: 6.1 Sol prices match local standard estimates`, () => {
     const source = fs.readFileSync(path.join(__dirname, "../dashboard/edge-patches", `${slug}.ts`), "utf8");
-    const blockMatch = source.match(/const MODEL_PRICING[\s\S]*?\nfunction getModelPricing\(model: string(?:, source = "")?\) \{[\s\S]*?\n\}/);
-    assert.ok(blockMatch, `${slug}: pricing block is present`);
-    const rowPricing = source.match(/\nfunction getRowPricing\([\s\S]*?\n\}/)[0];
-    const compute = source.match(/\nfunction computeRowCost\([\s\S]*?\n\}/)?.[0] || "";
-    const script = transformSync(`${blockMatch[0]}\n${rowPricing}\n${compute}`, { loader: "ts", format: "cjs" }).code;
-    const context = vm.createContext({ SOURCES_WITH_AUTHORITATIVE_COST: new Set(["grok"]) });
-    vm.runInContext(script, context);
+    assert.match(source, /from "\.\/cloud\/pricing\.ts"/);
+    const context = require("./helpers/cloud-pricing.cjs")();
+    const compute = true;
     for (const model of models) {
       const actual = context.getModelPricing(model);
       for (const [key, value] of Object.entries(rates)) {

@@ -18,7 +18,7 @@ const privateFunctions = [
   "tokentracker-device-token-issue","tokentracker-device-rename","tokentracker-ingest",
   "tokentracker-account-summary","tokentracker-account-daily","tokentracker-account-hourly",
   "tokentracker-account-monthly","tokentracker-account-heatmap","tokentracker-account-model-breakdown",
-  "tokentracker-account-devices","tokentracker-billing",
+  "tokentracker-account-devices","tokentracker-billing","tokentracker-devices","tokentracker-pricing",
 ];
 function steps() {
   const sessions=read("migrations/20260817120000_account-session-states.sql");
@@ -52,6 +52,7 @@ CREATE TRIGGER self_host_sessions_delete_cache AFTER DELETE ON public.tokentrack
     {id:"11-token-environment-validation",sql:read("migrations/20261008120001_validate-cloud-token-environment.sql")},
     {id:"12-pro-gifts",sql:read("migrations/20261009120000_cloud-gifts.sql")},
     {id:"13-machine-alias-cascade",sql:read("migrations/20261012120000_cloud-machine-alias-cascade.sql")},
+    {id:"14-personal-pricing",sql:read("scripts/self-host/personal-pricing.sql")},
   ];
 }
 module.exports={root,read,functionSql,privateFunctions,steps};

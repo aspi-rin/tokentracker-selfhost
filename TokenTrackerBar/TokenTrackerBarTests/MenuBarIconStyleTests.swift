@@ -16,40 +16,16 @@ final class MenuBarIconStyleTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Defaults & persistence
-
-    func testDefaultsToClawdWhenNothingStored() {
-        XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), .clawd)
-    }
-
-    func testRoundTripsEveryStyle() {
+    func testPersonalInstanceAlwaysUsesBot() {
+        XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), .bot)
         for style in MenuBarIconStyle.allCases {
+            defaults.set(style.rawValue, forKey: MenuBarIconStyle.defaultsKey)
+            XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), .bot)
             MenuBarIconStyle.setCurrent(style, defaults: defaults)
-            XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), style)
+            XCTAssertEqual(defaults.string(forKey: MenuBarIconStyle.defaultsKey), "bot")
         }
-    }
-
-    func testInvalidStoredValueFallsBackToClawd() {
-        defaults.set("dog", forKey: MenuBarIconStyle.defaultsKey)
-        XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), .clawd)
-    }
-
-    // MARK: - Legacy "Animated icon" toggle migration
-
-    func testLegacyAnimationDisabledMigratesToStatic() {
         defaults.set(false, forKey: MenuBarIconStyle.legacyAnimationEnabledKey)
-        XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), .static)
-    }
-
-    func testLegacyAnimationEnabledMigratesToClawd() {
-        defaults.set(true, forKey: MenuBarIconStyle.legacyAnimationEnabledKey)
-        XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), .clawd)
-    }
-
-    func testExplicitStyleWinsOverLegacyToggle() {
-        defaults.set(false, forKey: MenuBarIconStyle.legacyAnimationEnabledKey)
-        MenuBarIconStyle.setCurrent(.cat, defaults: defaults)
-        XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), .cat)
+        XCTAssertEqual(MenuBarIconStyle.current(defaults: defaults), .bot)
     }
 
     // MARK: - Runner pace contract

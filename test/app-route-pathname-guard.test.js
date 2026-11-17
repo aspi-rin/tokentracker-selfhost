@@ -24,7 +24,7 @@ test("App.jsx routes to /leaderboard page", () => {
   const source = fs.readFileSync(appPath, "utf8");
   assert.equal(source.includes('"/rankings"'), false, "Removed /rankings route should not exist");
   assert.equal(source.includes('"/leaderboard"'), true, "/leaderboard route should exist");
-  assert.equal(source.includes("LeaderboardPage"), true, "LeaderboardPage should be referenced");
+  assert.equal(source.includes("PersonalHomePage"), true, "Personal home should replace rankings");
 });
 
 test("App.jsx routes to /login page", () => {
@@ -47,5 +47,5 @@ test("App.jsx routes to the desktop pet settings page", () => {
   const appPath = path.join(repoRoot, "dashboard/src/App.jsx");
   const source = fs.readFileSync(appPath, "utf8");
   assert.equal(source.includes('"/pet-settings"'), true, "/pet-settings route should exist");
-  assert.equal(source.includes("PetPage"), true, "PetPage should be lazy-loaded and referenced");
+  assert.equal(source.includes("PetPage"), false, "Pet configuration is removed");
 });

@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useInsforgeAuth } from "../contexts/InsforgeAuthContext.jsx";
 import { useLoginModal } from "../contexts/LoginModalContext.jsx";
 import { useLocale } from "../hooks/useLocale.js";
-import { useCloudAccount } from "../hooks/use-cloud-billing.js";
-import { isOfficialInsforgeInstance } from "../lib/insforge-config";
 import { isNativeApp } from "../lib/native-bridge.js";
 import { copy } from "../lib/copy";
 import { cn } from "../lib/cn";
@@ -36,18 +34,6 @@ function initialsFromName(name) {
   return s.slice(0, 2).toUpperCase();
 }
 
-export function isCurrentProAccount(account, now = Date.now()) {
-  const membership = account?.membership;
-  if (account?.environment !== "live" || membership?.environment !== "live"
-    || membership.phase !== "active" || membership.status !== "active"
-    || ![undefined, "hosted"].includes(membership.hosting_mode)
-    || typeof membership.expires_at !== "string" || !Number.isFinite(Date.parse(membership.expires_at))
-    || Date.parse(membership.expires_at) <= now) return false;
-  // The server derives access_source from current, unrevoked periods. History
-  // is capped, so an active period need not be present in the returned arrays.
-  return ["payment", "gift", "mixed"].includes(membership.access_source);
-}
-
 /**
  * Compact identity control. Avatar click navigates to /settings — all account
  * preferences live there now. Sign-in shows the login modal as before.
@@ -57,8 +43,7 @@ export function InsforgeUserHeaderControls({ className, variant = "header", coll
   useLocale();
   const isSidebar = variant === "sidebar";
   const { enabled, loading, signedIn, user, displayName } = useInsforgeAuth();
-  const billing = useCloudAccount({ enabled: isSidebar && enabled && !loading && signedIn && isOfficialInsforgeInstance() });
-  const proActive = isSidebar && !billing.error && isCurrentProAccount(billing.account);
+  const proActive = false;
   const { openLoginModal } = useLoginModal();
   const navigate = useNavigate();
   const avatarUrl = useMemo(() => pickAvatarUrl(user), [user]);
