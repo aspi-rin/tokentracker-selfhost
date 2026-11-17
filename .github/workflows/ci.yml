@@ -48,6 +48,7 @@ jobs:
       # fetch + cloud OAuth. dashboard/.env.local is gitignored, hence inlined here.
       - name: Build dashboard
         env:
+          VITE_TOKENTRACKER_PUBLIC_PROFILES: "1"
           VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
           VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
 
@@ -142,6 +143,7 @@ jobs:
       # bundled dashboard/dist/index.html exists, and a fresh checkout has none.
       - name: Build dashboard
         env:
+          VITE_TOKENTRACKER_PUBLIC_PROFILES: "1"
           VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
           VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
 
@@ -230,6 +232,7 @@ jobs:
 
       - name: Build Windows dashboard with pet and quota
         env:
+          VITE_TOKENTRACKER_PUBLIC_PROFILES: "1"
           VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
           VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
 
@@ -243,9 +246,14 @@ jobs:
         run: node --test --test-timeout=120000 --test-concurrency=4 test/*.test.js
 
       - name: Bundle and verify Windows review package
+        env:
+          VITE_INSFORGE_BASE_URL: https://tokens.aspi-rin.top
+          VITE_INSFORGE_ANON_KEY: anon_3d620d072c36aafee9492e335b24d7a80cff94e1
         shell: pwsh
         run: |
           powershell -ExecutionPolicy Bypass -File TokenTrackerWin/scripts/bundle-node.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/configure-instance-bundle.cjs TokenTrackerWin/EmbeddedServer/tokentracker
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet publish TokenTrackerWin/TokenTrackerWin.csproj -c Release -r win-x64 --self-contained true -o TokenTrackerWin/publish
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
