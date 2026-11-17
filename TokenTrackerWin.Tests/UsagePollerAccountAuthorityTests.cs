@@ -147,21 +147,27 @@ public sealed class UsagePollerAccountAuthorityTests
     }
 
     /// <summary>Runs one poll; returns the published stats, or null if none was published.</summary>
-    private static async Task<UsagePoller.UsageStats?> PollOnceAsync(UsagePoller poller, TimeSpan wait, bool forceAccount = true)
+    private static async Task<UsagePoller.UsageStats?> PollOnceAsync(UsagePoller poller, TimeSpan wait, bool forceAccount = true, bool waitForLimits = false)
     {
         var published = new TaskCompletionSource<UsagePoller.UsageStats>(
             TaskCreationOptions.RunContinuationsAsynchronously);
+        var limitsPublished = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         void OnStats(UsagePoller.UsageStats s) => published.TrySetResult(s);
+        void OnLimits(string _) => limitsPublished.TrySetResult(true);
         poller.StatsUpdated += OnStats;
+        if (waitForLimits) poller.LimitsUpdated += OnLimits;
         try
         {
             poller.RefreshNow(forceAccount);
             var done = await Task.WhenAny(published.Task, Task.Delay(wait));
-            return done == published.Task ? published.Task.Result : null;
+            if (done != published.Task) return null;
+            if (waitForLimits) await limitsPublished.Task.WaitAsync(wait);
+            return published.Task.Result;
         }
         finally
         {
             poller.StatsUpdated -= OnStats;
+            if (waitForLimits) poller.LimitsUpdated -= OnLimits;
         }
     }
 
@@ -176,7 +182,7 @@ public sealed class UsagePollerAccountAuthorityTests
             IncludeRichStats = true,
             IncludeLimits = true,
         };
-        var first = await PollOnceAsync(poller, Publishes, forceAccount: false);
+        var first = await PollOnceAsync(poller, Publishes, forceAccount: false, waitForLimits: true);
         Assert.NotNull(first);
         var ordinary = server.Requests.ToArray();
         Assert.Contains(ordinary, request => request.StartsWith(SummaryPath));
@@ -186,7 +192,7 @@ public sealed class UsagePollerAccountAuthorityTests
         Assert.All(ordinary, request => Assert.DoesNotContain("refresh=1", request));
 
         server.SummaryTokens = 2_000;
-        var refreshed = await PollOnceAsync(poller, Publishes);
+        var refreshed = await PollOnceAsync(poller, Publishes, waitForLimits: true);
         Assert.NotNull(refreshed);
         Assert.Equal(2_000, refreshed.Value.TodayTokens);
         var manual = server.Requests.ToArray().Skip(ordinary.Length).ToArray();
