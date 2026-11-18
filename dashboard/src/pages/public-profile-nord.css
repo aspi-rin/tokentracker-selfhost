@@ -1,0 +1,335 @@
+/* Snow Storm and Polar Night surfaces, with Frost for usage and focus. */
+.nord-profile,
+.nord-profile-tooltip {
+  --nord-profile-base: #e5e9f0;
+  --nord-profile-inset: #e0e6ed;
+  --nord-profile-ink: #2e3440;
+  --nord-profile-muted: #4c566a;
+  --nord-profile-line: #c0cad8;
+  --nord-profile-highlight: #fff;
+  --nord-profile-shade: #bdc8d7;
+  --nord-profile-focus: #405f87;
+  --nord-profile-blue: #c8e0f4;
+  --nord-profile-pink: #f5e0e8;
+  --nord-profile-frost: #5e81ac;
+  --nord-profile-frost-bright: #81a1c1;
+  --nord-profile-copied: #285e49;
+  --nord-profile-heatmap-0: #d8dee9;
+  --nord-profile-heatmap-1: #acc7d9;
+  --nord-profile-heatmap-2: #81a1c1;
+  --nord-profile-heatmap-3: #5e81ac;
+  --nord-profile-heatmap-4: #3d5d86;
+  --nord-profile-raised:
+    -5px -5px 14px var(--nord-profile-highlight),
+    6px 6px 15px var(--nord-profile-shade);
+  --nord-profile-recessed:
+    inset 3px 3px 8px var(--nord-profile-shade),
+    inset -3px -3px 8px var(--nord-profile-highlight);
+}
+
+.dark .nord-profile,
+.dark .nord-profile-tooltip {
+  --nord-profile-base: #2e3440;
+  --nord-profile-inset: #2a303c;
+  --nord-profile-ink: #eceff4;
+  --nord-profile-muted: #d8dee9;
+  --nord-profile-line: #4c566a;
+  --nord-profile-highlight: #41495a;
+  --nord-profile-shade: #202530;
+  --nord-profile-focus: #88c0d0;
+  --nord-profile-blue: #3b4a61;
+  --nord-profile-pink: #4b4050;
+  --nord-profile-frost: #81a1c1;
+  --nord-profile-frost-bright: #88c0d0;
+  --nord-profile-copied: #a3be8c;
+  --nord-profile-heatmap-0: #3b4252;
+  --nord-profile-heatmap-1: #496686;
+  --nord-profile-heatmap-2: #5e81ac;
+  --nord-profile-heatmap-3: #81a1c1;
+  --nord-profile-heatmap-4: #88c0d0;
+}
+
+.nord-profile {
+  background: var(--nord-profile-base);
+  color: var(--nord-profile-ink);
+  font-family: system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.nord-profile-surface {
+  border-radius: 1.5rem;
+  background: var(--nord-profile-base);
+  box-shadow: -10px -10px 30px var(--nord-profile-highlight),
+    10px 10px 30px var(--nord-profile-shade);
+}
+
+.nord-profile .nord-profile-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.nord-profile .nord-profile-hero::after {
+  position: absolute;
+  z-index: -1;
+  inset: -92px -60px auto auto;
+  width: 252px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle,
+    transparent 0 13px,
+    var(--nord-profile-highlight) 14px 15px,
+    var(--nord-profile-shade) 16px,
+    transparent 17px 23px);
+  opacity: .65;
+  pointer-events: none;
+  content: "";
+}
+
+.nord-profile .nord-profile-avatar {
+  --leaderboard-avatar-fallback: #405f87;
+  box-shadow: 0 0 0 4px var(--nord-profile-base), var(--nord-profile-raised);
+}
+
+.nord-profile .nord-profile-avatar img {
+  outline: 1px solid rgb(0 0 0 / 10%);
+  outline-offset: -1px;
+}
+
+.dark .nord-profile .nord-profile-avatar img {
+  outline-color: rgb(255 255 255 / 10%);
+}
+
+.nord-profile .nord-profile-name {
+  color: var(--nord-profile-ink);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 650;
+}
+
+.nord-profile .nord-profile-ink,
+.nord-profile .nord-profile-stat-value {
+  color: var(--nord-profile-ink);
+}
+
+.nord-profile .nord-profile-muted,
+.nord-profile-tooltip .nord-profile-muted {
+  color: var(--nord-profile-muted);
+}
+
+.nord-profile .nord-profile-stats {
+  gap: .85rem;
+}
+
+.nord-profile .nord-profile-stat {
+  min-width: 0;
+  padding: .8rem .85rem;
+  border-radius: .85rem;
+  box-shadow: var(--nord-profile-raised);
+}
+
+.nord-profile .nord-profile-stat-value {
+  font-size: clamp(1.2rem, 2.8vw, 1.68rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.nord-profile .nord-profile-section,
+.nord-profile .nord-profile-body {
+  border-color: var(--nord-profile-line);
+}
+
+.nord-profile .nord-profile-section-label {
+  margin-bottom: .85rem;
+  color: var(--nord-profile-ink);
+  font-size: .875rem;
+  font-weight: 650;
+  letter-spacing: .012em;
+  text-transform: none;
+}
+
+.nord-profile .nord-profile-chip {
+  border-color: transparent;
+  background: var(--nord-profile-blue);
+  color: var(--nord-profile-ink);
+}
+
+.nord-profile .nord-profile-chip-pink {
+  background: var(--nord-profile-pink);
+}
+
+.nord-profile .nord-profile-activity {
+  padding: 1rem .85rem;
+  border-radius: 1rem;
+  background: var(--nord-profile-inset);
+  box-shadow: var(--nord-profile-recessed);
+}
+
+.nord-profile .nord-profile-activity-labels {
+  background: var(--nord-profile-inset);
+}
+
+.nord-profile-tooltip .nord-profile-tooltip-panel,
+.nord-profile-tooltip .nord-profile-tooltip-arrow {
+  border-color: var(--nord-profile-line);
+  background: var(--nord-profile-base);
+  color: var(--nord-profile-ink);
+}
+
+.nord-profile .nord-profile-model {
+  padding-block: .18rem;
+  border-color: var(--nord-profile-line);
+}
+
+.nord-profile .nord-profile-model-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(2, max-content) .5rem;
+  align-items: center;
+  gap: .65rem;
+  min-height: 44px;
+  padding: .35rem .5rem;
+  border-radius: .55rem;
+  font-size: .8125rem;
+  list-style: none;
+}
+
+.nord-profile .nord-profile-model-summary > span {
+  margin-left: 0;
+  overflow-wrap: anywhere;
+}
+
+.nord-profile .nord-profile-model-summary::after {
+  width: .42rem;
+  height: .42rem;
+  border: solid var(--nord-profile-muted);
+  border-width: 0 1.5px 1.5px 0;
+  transform: translateY(-1px) rotate(45deg);
+  content: "";
+}
+
+.nord-profile .nord-profile-model[open] > .nord-profile-model-summary::after {
+  transform: translateY(1px) rotate(225deg);
+}
+
+.nord-profile .nord-profile-model-summary:hover,
+.nord-profile .nord-profile-model[open] > .nord-profile-model-summary {
+  background: var(--nord-profile-inset);
+}
+
+.nord-profile-more > summary {
+  width: max-content;
+  max-width: 100%;
+  margin-block: .85rem .45rem;
+  list-style: none;
+}
+
+.nord-profile .nord-profile-model-summary::-webkit-details-marker,
+.nord-profile-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nord-profile-fewer-label,
+.nord-profile-more[open] .nord-profile-more-label {
+  display: none;
+}
+
+.nord-profile-more[open] .nord-profile-fewer-label {
+  display: inline;
+}
+
+.nord-profile-more[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.nord-profile .nord-profile-progress {
+  height: .45rem;
+  background: var(--nord-profile-inset);
+  box-shadow: var(--nord-profile-recessed);
+}
+
+.nord-profile .nord-profile-progress-fill {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--nord-profile-frost), var(--nord-profile-frost-bright));
+}
+
+.nord-profile .nord-profile-control,
+.nord-profile .nord-profile-theme > button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  border: 0;
+  border-radius: 999px;
+  padding: .5rem .9rem;
+  background: var(--nord-profile-base);
+  box-shadow: var(--nord-profile-raised);
+  color: var(--nord-profile-ink);
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.nord-profile .nord-profile-theme > button {
+  min-width: 44px;
+  padding: 0;
+}
+
+.nord-profile .nord-profile-theme > div {
+  background: var(--nord-profile-base);
+  border-color: var(--nord-profile-line);
+}
+
+.nord-profile .nord-profile-control:hover,
+.nord-profile .nord-profile-theme > button:hover {
+  background: var(--nord-profile-inset);
+}
+
+.nord-profile .nord-profile-control:active,
+.nord-profile .nord-profile-theme > button:active,
+.nord-profile-more[open] > .nord-profile-control {
+  box-shadow: var(--nord-profile-recessed);
+}
+
+.nord-profile .nord-profile-control:active,
+.nord-profile .nord-profile-theme > button:active {
+  transform: scale(.96);
+}
+
+.nord-profile .nord-profile-control[data-copied="true"] {
+  color: var(--nord-profile-copied);
+}
+
+.nord-profile :is(a, button, summary, .heatmap-scroll-thin):focus-visible {
+  /* The app's global focus reset is important. */
+  outline: 2px solid var(--nord-profile-focus) !important;
+  outline-offset: 2px;
+}
+
+.nord-profile .nord-profile-model-summary:focus-visible {
+  box-shadow: none;
+  outline-offset: -2px;
+}
+
+@media (max-width: 639px) {
+  .nord-profile .nord-profile-hero {
+    gap: 1rem;
+  }
+
+  .nord-profile .nord-profile-hero::after {
+    inset: -105px -125px auto auto;
+  }
+
+  .nord-profile .nord-profile-model-summary {
+    gap: .45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nord-profile *,
+  .nord-profile *::after,
+  .nord-profile-tooltip,
+  .nord-profile-tooltip * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

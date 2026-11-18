@@ -342,6 +342,8 @@
   "leaderboard.profile_modal.models.count": "使用了 {{count}} 个模型",
   "leaderboard.profile_modal.models.favorite": "最爱模型",
   "leaderboard.profile_modal.models.none": "暂无模型记录",
+  "leaderboard.profile_modal.models.show_all": "显示全部模型",
+  "leaderboard.profile_modal.models.show_top": "仅显示前 {{count}} 个模型",
   "leaderboard.profile_modal.heatmap.title": "活跃度（最近 365 天）",
   "leaderboard.profile_modal.providers.title": "按 Provider 分布",
   "leaderboard.profile_modal.providers.none": "本周期无使用数据。",
