@@ -19,10 +19,12 @@ export default function PersonalHomePage({ auth, signedIn }) {
       }catch{if(!controller.signal.aborted)setState({loading:false,id:null,error:true});}
     })();return()=>controller.abort();
   },[]);
-  if(state.id)return <LeaderboardProfilePage userId={state.id} auth={auth} signedIn={signedIn} />;
-  return <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-5 px-6 text-center">
-    <h1 className="text-balance text-2xl font-semibold">{copy("personal.home.title")}</h1>
-    <p role={state.error?"alert":"status"} className="text-sm text-oai-gray-500">{copy(state.loading?"shared.loading":state.error?"leaderboard.profile_modal.error":"personal.home.private")}</p>
-    <Button as={Link} to={signedIn?"/dashboard":"/login"} variant="secondary">{copy(signedIn?"nav.usage":"header.auth.sign_in_aria")}</Button>
+  if(state.id)return <LeaderboardProfilePage userId={state.id} auth={auth} signedIn={signedIn} personal />;
+  return <main className="nord-profile flex min-h-screen items-center justify-center px-6 py-8 text-center">
+    <div className="nord-profile-surface flex w-full max-w-xl flex-col items-center gap-5 px-6 py-8">
+      <h1 className="text-balance text-2xl font-semibold">{copy("personal.home.title")}</h1>
+      <p role={state.error?"alert":"status"} className="nord-profile-muted text-sm">{copy(state.loading?"shared.loading":state.error?"leaderboard.profile_modal.error":"personal.home.private")}</p>
+      <Button as={Link} to={signedIn?"/dashboard":"/login"} variant="secondary" className="nord-profile-control">{copy(signedIn?"nav.usage":"header.auth.sign_in_aria")}</Button>
+    </div>
   </main>;
 }

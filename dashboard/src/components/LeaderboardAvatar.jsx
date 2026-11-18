@@ -70,7 +70,7 @@ export function LeaderboardAvatar({
         className,
         proFrame,
       )}
-      style={{ backgroundColor: `hsl(${hue} 42% 34%)` }}
+      style={{ backgroundColor: `var(--leaderboard-avatar-fallback, hsl(${hue} 42% 34%))` }}
       aria-hidden
     >
       {initialsFromName(displayName)}

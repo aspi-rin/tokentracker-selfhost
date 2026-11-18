@@ -1,5 +1,5 @@
 import { Dialog } from "@base-ui/react/dialog";
-import { X, ArrowUpRight, Check, Link2, Code2 } from "lucide-react";
+import { X, ArrowUpRight, Check, ChevronDown, Link2, Code2 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { copy } from "../../lib/copy";
@@ -29,6 +29,7 @@ import { highestBadge } from "../../ui/achievements/badge-catalog";
 import { TokenFormatModeOverride } from "../../ui/foundation/TokenFormatProvider.jsx";
 
 const selfHostedPublic = import.meta.env.VITE_TOKENTRACKER_PUBLIC_PROFILES === "1";
+const PERSONAL_MODEL_LIMIT = 5;
 
 // Lazy: the 3D coin + dialog code ships only when a badge is clicked.
 const BadgeDetailModal = React.lazy(() => import("../../ui/achievements/BadgeDetailModal.jsx"));
@@ -203,7 +204,7 @@ function extractGithubHandle(url) {
 
 function SectionLabel({ children }) {
   return (
-    <h3 className="text-[11px] uppercase tracking-[0.08em] text-oai-gray-500 dark:text-oai-gray-400 mb-3">
+    <h3 className="nord-profile-section-label text-[11px] uppercase tracking-[0.08em] text-oai-gray-500 dark:text-oai-gray-400 mb-3">
       {children}
     </h3>
   );
@@ -212,10 +213,10 @@ function SectionLabel({ children }) {
 /** Stat number stacked over caption label. */
 function Stat({ value, label, title, labelTitle }) {
   return (
-    <div>
+    <div className="nord-profile-stat">
       <div
         title={title}
-        className="text-2xl font-black tabular-nums tracking-tight leading-none text-oai-black dark:text-white"
+        className="nord-profile-stat-value text-2xl font-black tabular-nums tracking-tight leading-none text-oai-black dark:text-white"
         style={{ 
           fontFamily: '"DIN Alternate-Bold", "DIN Alternate", "DIN Condensed-Bold", "Impact", -apple-system, sans-serif',
           fontWeight: 900 
@@ -223,7 +224,7 @@ function Stat({ value, label, title, labelTitle }) {
       >
         {value}
       </div>
-      <div title={labelTitle} className="mt-1.5 text-[11px] text-oai-gray-500 dark:text-oai-gray-400">{label}</div>
+      <div title={labelTitle} className="nord-profile-muted mt-1.5 text-[11px] text-oai-gray-500 dark:text-oai-gray-400">{label}</div>
     </div>
   );
 }
@@ -232,8 +233,8 @@ function Stat({ value, label, title, labelTitle }) {
 function FactRow({ label, children }) {
   return (
     <div className="flex items-baseline gap-3 text-sm">
-      <dt className="shrink-0 w-28 whitespace-nowrap text-oai-gray-500 dark:text-oai-gray-400">{label}</dt>
-      <dd className="min-w-0 flex-1 text-oai-gray-900 dark:text-oai-gray-100 tabular-nums truncate flex items-baseline gap-2 flex-wrap">
+      <dt className="nord-profile-muted shrink-0 w-28 whitespace-nowrap text-oai-gray-500 dark:text-oai-gray-400">{label}</dt>
+      <dd className="nord-profile-ink min-w-0 flex-1 text-oai-gray-900 dark:text-oai-gray-100 tabular-nums truncate flex items-baseline gap-2 flex-wrap">
         {children}
       </dd>
     </div>
@@ -320,7 +321,7 @@ function PageHero({ user, topBadge }) {
           ? "text-orange-600 dark:text-orange-400"
           : "text-oai-gray-400 dark:text-oai-gray-500";
   return (
-    <div className="flex items-center gap-5 px-6 sm:px-8 pt-8 pb-7">
+    <div className="nord-profile-hero flex items-center gap-5 px-6 sm:px-8 pt-8 pb-7">
       <AvatarWithBadge
         badge={topBadge}
         avatarUrl={user?.avatar_url}
@@ -328,12 +329,12 @@ function PageHero({ user, topBadge }) {
         seed={user?.user_id || user?.display_name}
         size="xl"
         proActive={user?.pro_active === true}
-        className="shrink-0 ring-1 ring-oai-gray-200 dark:ring-oai-gray-800 rounded-full"
+        className="nord-profile-avatar shrink-0 ring-1 ring-oai-gray-200 dark:ring-oai-gray-800 rounded-full"
       />
       <div className="min-w-0 flex-1 flex items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="truncate text-2xl sm:text-[28px] font-semibold tracking-tight leading-tight text-oai-black dark:text-white">
+            <h1 className="nord-profile-name truncate text-2xl sm:text-[28px] font-semibold tracking-tight leading-tight text-oai-black dark:text-white">
               {user?.display_name || "—"}
             </h1>
             <LeaderboardProBadge proActive={user?.pro_active === true} />
@@ -344,7 +345,7 @@ function PageHero({ user, topBadge }) {
               href={user.github_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center gap-1.5 text-sm text-oai-gray-500 dark:text-oai-gray-400 hover:text-oai-gray-900 dark:hover:text-white transition-colors"
+              className="nord-profile-muted mt-2 inline-flex items-center gap-1.5 text-sm text-oai-gray-500 dark:text-oai-gray-400 hover:text-oai-gray-900 dark:hover:text-white transition-colors"
             >
               <ProviderIcon provider="GITHUB" size={13} />
               <span>@{handle}</span>
@@ -371,7 +372,7 @@ function ProviderList({ data }) {
   const arr = Array.isArray(data) ? data : [];
   if (arr.length === 0) {
     return (
-      <p className="text-xs text-oai-gray-500 dark:text-oai-gray-400">
+      <p className="nord-profile-muted text-xs text-oai-gray-500 dark:text-oai-gray-400">
         {copy("leaderboard.profile_modal.providers.none")}
       </p>
     );
@@ -385,19 +386,19 @@ function ProviderList({ data }) {
             <span className="shrink-0 inline-flex items-center justify-center w-4 h-4">
               <ProviderIcon provider={String(p.source).toUpperCase()} size={14} />
             </span>
-            <span className="w-20 shrink-0 text-oai-gray-700 dark:text-oai-gray-300">
+            <span className="nord-profile-ink w-20 shrink-0 text-oai-gray-700 dark:text-oai-gray-300">
               {formatProviderDisplayName(p.source)}
             </span>
-            <span className="flex-1 h-[3px] rounded-full bg-oai-gray-200/60 dark:bg-oai-gray-800/80 overflow-hidden">
+            <span className="nord-profile-progress flex-1 h-[3px] rounded-full bg-oai-gray-200/60 dark:bg-oai-gray-800/80 overflow-hidden">
               <span
-                className="block h-full bg-oai-brand-500 dark:bg-oai-brand-400"
+                className="nord-profile-progress-fill block h-full bg-oai-brand-500 dark:bg-oai-brand-400"
                 style={{ width: `${(pct * 100).toFixed(1)}%` }}
               />
             </span>
-            <span title={formatTokensTooltip(p.total_tokens)} className="shrink-0 w-14 text-right tabular-nums text-oai-gray-700 dark:text-oai-gray-300">
+            <span title={formatTokensTooltip(p.total_tokens)} className="nord-profile-ink shrink-0 w-14 text-right tabular-nums text-oai-gray-700 dark:text-oai-gray-300">
               {formatTokens(p.total_tokens)}
             </span>
-            <span className="shrink-0 w-10 text-right tabular-nums text-oai-gray-500 dark:text-oai-gray-400">
+            <span className="nord-profile-muted shrink-0 w-10 text-right tabular-nums text-oai-gray-500 dark:text-oai-gray-400">
               {(pct * 100).toFixed(0)}%
             </span>
           </li>
@@ -426,8 +427,9 @@ function CopyAction({ icon: Icon, label, value }) {
     <button
       type="button"
       onClick={onClick}
+      data-copied={copied}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+        "nord-profile-control inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
         copied
           ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/[0.06]"
           : "border-oai-gray-200 dark:border-oai-gray-800 text-oai-gray-600 dark:text-oai-gray-300 hover:text-oai-gray-900 dark:hover:text-oai-gray-100 hover:border-oai-gray-300 dark:hover:border-oai-gray-700 hover:bg-oai-gray-50 dark:hover:bg-oai-gray-900/40",
@@ -436,6 +438,42 @@ function CopyAction({ icon: Icon, label, value }) {
       {copied ? <Check size={13} strokeWidth={2} aria-hidden /> : <Icon size={13} strokeWidth={2} aria-hidden />}
       <span>{copied ? copy("leaderboard.profile_modal.badge.copied") : label}</span>
     </button>
+  );
+}
+
+function ProfileModel({ model, currency, rate }) {
+  const { formatTokens, formatTokensTooltip } = useTokenFormat();
+  return (
+    <details className="nord-profile-model border-b border-oai-gray-100 py-2 text-xs dark:border-oai-gray-800">
+      <summary className="nord-profile-model-summary cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand-500">
+        <span className="font-medium">{model.model_name}</span>
+        <span className="ml-3 tabular-nums" title={formatTokensTooltip(model.total_tokens)}>{formatTokens(model.total_tokens)}</span>
+        <span className="ml-3 tabular-nums">{formatUsdCurrency(model.estimated_cost_usd, { currency, rate })}</span>
+      </summary>
+      <dl className="nord-profile-muted mt-2 flex flex-wrap gap-x-4 gap-y-1 text-oai-gray-500">
+        {[
+          ["input_tokens", "dashboard.projects.detail.comp_input"],
+          ["cached_input_tokens", "dashboard.projects.detail.comp_cached"],
+          ["cache_creation_input_tokens", "dashboard.projects.detail.comp_cache_write"],
+          ["output_tokens", "dashboard.projects.detail.comp_output"],
+          ["reasoning_output_tokens", "dashboard.projects.detail.comp_reasoning"],
+        ].map(([field, label]) => (
+          <div key={field} className="flex gap-1"><dt>{copy(label)}</dt><dd title={formatTokensTooltip(model[field])}>{formatTokens(model[field])}</dd></div>
+        ))}
+      </dl>
+    </details>
+  );
+}
+
+function ProfileActivity({ heatmapData, appearance }) {
+  if (!heatmapData) return null;
+  return (
+    <section className="nord-profile-section border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
+      <SectionLabel>{copy("leaderboard.profile_modal.heatmap.title")}</SectionLabel>
+      <div className="nord-profile-activity min-w-0">
+        <ActivityHeatmap heatmap={heatmapData} hideLegend embedded appearance={appearance} />
+      </div>
+    </section>
   );
 }
 
@@ -456,7 +494,8 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
     heatmap,
     period,
   } = data;
-  const isPage = variant === "page";
+  const isPersonal = variant === "personal";
+  const isPage = isPersonal || variant === "page";
   const lifetimeTotals = totals?.source === "leaderboard_snapshot";
   const windowDays = period?.from && period?.to
     ? Math.round((Date.parse(period.to) - Date.parse(period.from)) / 86400000) + 1
@@ -478,6 +517,15 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
     ? `[![My AI coding usage](${getInsforgeRemoteUrl()}/functions/tokentracker-embed-svg?user_id=${user.user_id}&theme=dark)](${profileUrl}?ref=readme)`
     : null;
 
+  const breakdown = Array.isArray(models?.breakdown) ? models.breakdown : [];
+  const sortedModels = isPersonal
+    ? [...breakdown].sort((a, b) => (Number(b.total_tokens) || 0) - (Number(a.total_tokens) || 0))
+    : breakdown;
+  const modelRows = sortedModels.map((model) => {
+    return <ProfileModel key={model.model_name} model={model} currency={currency} rate={rate} />;
+  });
+  const moreModels = isPersonal ? modelRows.slice(PERSONAL_MODEL_LIMIT) : [];
+
   return (
     <>
       {isPage ? <PageHero user={user} topBadge={highestBadge(badges)} /> : <Header user={user} onClose={onClose} />}
@@ -485,12 +533,11 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
         className={cn(
           "space-y-6",
           isPage
-            ? "px-6 sm:px-8 pt-6 pb-8 border-t border-oai-gray-200/80 dark:border-oai-gray-800/60"
+            ? "nord-profile-body px-6 sm:px-8 pt-6 pb-8 border-t border-oai-gray-200/80 dark:border-oai-gray-800/60"
             : "flex-1 min-h-0 overflow-y-auto oai-scrollbar px-6 py-5",
         )}
       >
-        {/* Stat strip — flat row, no nested cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4">
+        <div className="nord-profile-stats grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4">
           <Stat
             value={totals?.total_tokens == null ? copy("shared.placeholder.short") : formatTokens(totals.total_tokens)}
             title={formatTokensTooltip(totals?.total_tokens)}
@@ -512,7 +559,7 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
         </div>
 
         {period?.from && period?.to && (
-          <p className="text-[11px] text-oai-gray-500 dark:text-oai-gray-400">
+          <p className="nord-profile-muted text-[11px] text-oai-gray-500 dark:text-oai-gray-400">
             {copy(lifetimeTotals ? "leaderboard.profile_modal.window.lifetime" : "leaderboard.profile_modal.window.period", {
               from: period.from, to: period.to,
             })}
@@ -520,27 +567,27 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
         )}
 
         {/* Fact list — streak, best day, top model. Three lines, no card. */}
-        <dl className="space-y-2 border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
+        <dl className="nord-profile-section space-y-2 border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
           <FactRow label={copy("leaderboard.profile_modal.streak.current")}>
-            <span className="font-mono text-xs tracking-tight bg-oai-gray-100/60 dark:bg-oai-gray-900/50 px-1.5 py-0.5 rounded border border-oai-gray-200/30 dark:border-oai-gray-800/30">
+            <span className="nord-profile-chip font-mono text-xs tracking-tight bg-oai-gray-100/60 dark:bg-oai-gray-900/50 px-1.5 py-0.5 rounded border border-oai-gray-200/30 dark:border-oai-gray-800/30">
               {copy("leaderboard.profile_modal.streak.days", { count: streak?.current_days ?? 0 })}
             </span>
-            <span className="text-xs text-oai-gray-500 dark:text-oai-gray-400 font-mono">
+            <span className="nord-profile-muted text-xs text-oai-gray-500 dark:text-oai-gray-400 font-mono">
               (max {streak?.longest_days ?? 0})
             </span>
           </FactRow>
           <FactRow label={copy("leaderboard.profile_modal.best_day.title")}>
             {bestDay ? (
               <>
-                <span title={formatTokensTooltip(bestDay.total_tokens)} className="font-mono text-xs tracking-tight bg-oai-gray-100/60 dark:bg-oai-gray-900/50 px-1.5 py-0.5 rounded border border-oai-gray-200/30 dark:border-oai-gray-800/30">
+                <span title={formatTokensTooltip(bestDay.total_tokens)} className="nord-profile-chip nord-profile-chip-pink font-mono text-xs tracking-tight bg-oai-gray-100/60 dark:bg-oai-gray-900/50 px-1.5 py-0.5 rounded border border-oai-gray-200/30 dark:border-oai-gray-800/30">
                   {formatTokens(bestDay.total_tokens)}
                 </span>
-                <span className="text-xs text-oai-gray-500 dark:text-oai-gray-400 font-mono">
+                <span className="nord-profile-muted text-xs text-oai-gray-500 dark:text-oai-gray-400 font-mono">
                   on {bestDay.date}
                 </span>
               </>
             ) : (
-              <span className="text-xs text-oai-gray-400 dark:text-oai-gray-500 font-mono">
+              <span className="nord-profile-muted text-xs text-oai-gray-400 dark:text-oai-gray-500 font-mono">
                 {copy("leaderboard.profile_modal.best_day.none")}
               </span>
             )}
@@ -548,53 +595,46 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
           <FactRow label={copy("leaderboard.profile_modal.models.favorite")}>
             {favoriteName ? (
               <>
-                <span className="font-mono text-xs tracking-tight bg-oai-gray-100/60 dark:bg-oai-gray-900/50 px-1.5 py-0.5 rounded border border-oai-gray-200/30 dark:border-oai-gray-800/30 truncate max-w-[200px] inline-block align-bottom">
+                <span className="nord-profile-chip font-mono text-xs tracking-tight bg-oai-gray-100/60 dark:bg-oai-gray-900/50 px-1.5 py-0.5 rounded border border-oai-gray-200/30 dark:border-oai-gray-800/30 truncate max-w-[200px] inline-block align-bottom">
                   {favoriteName}
                 </span>
                 {modelCount > 1 && (
-                  <span className="text-xs text-oai-gray-500 dark:text-oai-gray-400 font-mono">
+                  <span className="nord-profile-muted text-xs text-oai-gray-500 dark:text-oai-gray-400 font-mono">
                     {copy("leaderboard.profile_modal.models.count", { count: modelCount })}
                   </span>
                 )}
               </>
             ) : (
-              <span className="text-xs text-oai-gray-400 dark:text-oai-gray-500 font-mono">
+              <span className="nord-profile-muted text-xs text-oai-gray-400 dark:text-oai-gray-500 font-mono">
                 {copy("leaderboard.profile_modal.models.none")}
               </span>
             )}
           </FactRow>
         </dl>
 
-        {Array.isArray(models?.breakdown) && Boolean(models.breakdown.length) && (
-          <section className="border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
+        {isPersonal && <ProfileActivity heatmapData={heatmapData} appearance="nord" />}
+
+        {Boolean(modelRows.length) && (
+          <section className="nord-profile-section border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
             <SectionLabel>{copy("usage.overview.all_models")}</SectionLabel>
-            {models.breakdown.map((model) => (
-              <details key={model.model_name} className="border-b border-oai-gray-100 py-2 text-xs dark:border-oai-gray-800">
-                <summary className="cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand-500">
-                  <span className="font-medium">{model.model_name}</span>
-                  <span className="ml-3 tabular-nums" title={formatTokensTooltip(model.total_tokens)}>{formatTokens(model.total_tokens)}</span>
-                  <span className="ml-3 tabular-nums">{formatUsdCurrency(model.estimated_cost_usd, { currency, rate })}</span>
+            {isPersonal ? modelRows.slice(0, PERSONAL_MODEL_LIMIT) : modelRows}
+            {Boolean(moreModels.length) && (
+              <details className="nord-profile-more">
+                <summary className="nord-profile-control">
+                  <span className="nord-profile-more-label">{copy("leaderboard.profile_modal.models.show_all")}</span>
+                  <span className="nord-profile-fewer-label">{copy("leaderboard.profile_modal.models.show_top", { count: PERSONAL_MODEL_LIMIT })}</span>
+                  <ChevronDown size={16} aria-hidden />
                 </summary>
-                <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-oai-gray-500">
-                  {[
-                    ["input_tokens", "dashboard.projects.detail.comp_input"],
-                    ["cached_input_tokens", "dashboard.projects.detail.comp_cached"],
-                    ["cache_creation_input_tokens", "dashboard.projects.detail.comp_cache_write"],
-                    ["output_tokens", "dashboard.projects.detail.comp_output"],
-                    ["reasoning_output_tokens", "dashboard.projects.detail.comp_reasoning"],
-                  ].map(([field, label]) => (
-                    <div key={field} className="flex gap-1"><dt>{copy(label)}</dt><dd title={formatTokensTooltip(model[field])}>{formatTokens(model[field])}</dd></div>
-                  ))}
-                </dl>
+                {moreModels}
               </details>
-            ))}
+            )}
           </section>
         )}
 
         {/* Achievements. The modal is space-constrained: one overlapping
             coin strip (click a coin for details). The standalone /u/ page has
             room for the full grid with names, tiers, and (own view) progress. */}
-        {(isOwnProfile || badges.some((b) => (b?.tier || 0) >= 1)) && (
+        {!isPersonal && (isOwnProfile || badges.some((b) => (b?.tier || 0) >= 1)) && (
           <section className="border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
             <SectionLabel>{copy("achievements.section.title")}</SectionLabel>
             {isPage ? (
@@ -614,16 +654,9 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
           </section>
         )}
 
-        {heatmapData && (
-          <section className="border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
-            <SectionLabel>{copy("leaderboard.profile_modal.heatmap.title")}</SectionLabel>
-            <div className="min-w-0">
-              <ActivityHeatmap heatmap={heatmapData} hideLegend embedded />
-            </div>
-          </section>
-        )}
+        {!isPersonal && <ProfileActivity heatmapData={heatmapData} />}
 
-        <section className="border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
+        <section className="nord-profile-section border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-5">
           <SectionLabel>{copy("leaderboard.profile_modal.providers.title")}</SectionLabel>
           <ProviderList data={byProvider} />
         </section>
@@ -632,7 +665,7 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
             (own profile) on the right. justify-between gives the row rhythm;
             in page mode only the chip group renders and sits left. */}
         {user?.user_id && (onClose || isOwnProfile) && (
-          <div className="border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <div className="nord-profile-section border-t border-oai-gray-200/70 dark:border-oai-gray-800/60 pt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             {onClose &&
               (isNativeApp() ? (
                 <a

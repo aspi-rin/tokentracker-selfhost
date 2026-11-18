@@ -1161,6 +1161,8 @@ leaderboard.profile_modal.best_day.none,dashboard,LeaderboardProfileModal,BestDa
 leaderboard.profile_modal.models.count,dashboard,LeaderboardProfileModal,Models,count,"{{count}} models used",,active
 leaderboard.profile_modal.models.favorite,dashboard,LeaderboardProfileModal,Models,favorite,"Favorite",,active
 leaderboard.profile_modal.models.none,dashboard,LeaderboardProfileModal,Models,none,"No models tracked",,active
+leaderboard.profile_modal.models.show_all,dashboard,LeaderboardProfileModal,Models,show_all,"Show all models",,active
+leaderboard.profile_modal.models.show_top,dashboard,LeaderboardProfileModal,Models,show_top,"Show top {{count}} models",,active
 leaderboard.profile_modal.heatmap.title,dashboard,LeaderboardProfileModal,Heatmap,title,"Activity (last 365 days)",,active
 leaderboard.profile_modal.providers.title,dashboard,LeaderboardProfileModal,Providers,title,"By provider",,active
 leaderboard.profile_modal.providers.none,dashboard,LeaderboardProfileModal,Providers,none,"No usage this period.",,active
